@@ -473,7 +473,7 @@ export default function SuperAdmin() {
                     <span style={{ flex:2, fontSize:12, fontFamily:"DM Mono", color: r.status==="active" ? "#2e7d32" : "#c62828" }}>{r.status==="active" ? "● Paying" : "○ Inactive"}</span>
                     <span style={{ flex:2, fontFamily:"DM Mono", color:"#a89880", fontSize:12 }}>{r.status==="active" ? "May 15, 2026" : "—"}</span>
                   </div>
-                );
+                );s
               })}
             </div>
           </div>
