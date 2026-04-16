@@ -20,13 +20,15 @@ const GlobalStyles = () => (
   `}</style>
 );
 
+const DEFAULT_FEATURES = { ordering: true, payment: false };
+
 const MOCK_RESTAURANTS = [
-  { id: "1", name: "Lumière", location: "Port Baku, AZ", plan: "pro", status: "active", password: "lumi2024!", joinDate: "2024-01-15", tables: 12, menuItems: 34, ordersToday: 47, revenue: 8420, contact: "manager@lumiere.az", lastActive: "2 min ago" },
-  { id: "2", name: "The House Cafe", location: "Nizami St, AZ", plan: "pro", status: "active", password: "house@baku", joinDate: "2024-02-03", tables: 8, menuItems: 28, ordersToday: 31, revenue: 5180, contact: "info@housecafe.az", lastActive: "18 min ago" },
-  { id: "3", name: "Zafferano", location: "Dubai, UAE", plan: "enterprise", status: "active", password: "zaff#2024", joinDate: "2024-03-20", tables: 24, menuItems: 62, ordersToday: 112, revenue: 24600, contact: "ops@zafferano.ae", lastActive: "Just now" },
-  { id: "4", name: "Baku Grill House", location: "Sahil, AZ", plan: "starter", status: "disabled", password: "grill123", joinDate: "2024-04-10", tables: 5, menuItems: 18, ordersToday: 0, revenue: 1230, contact: "owner@bakugrill.az", lastActive: "3 days ago" },
-  { id: "5", name: "Novikov Baku", location: "Flame Towers, AZ", plan: "enterprise", status: "active", password: "novikov!@#", joinDate: "2024-05-01", tables: 30, menuItems: 88, ordersToday: 204, revenue: 51200, contact: "baku@novikov.com", lastActive: "5 min ago" },
-  { id: "6", name: "Chinar", location: "Bulvar, AZ", plan: "starter", status: "suspended", password: "chinar22", joinDate: "2024-06-18", tables: 6, menuItems: 22, ordersToday: 0, revenue: 3100, contact: "chinar@mail.ru", lastActive: "12 days ago" },
+  { id: "1", name: "Lumière", location: "Port Baku, AZ", plan: "pro", status: "active", password: "lumi2024!", joinDate: "2024-01-15", tables: 12, menuItems: 34, ordersToday: 47, revenue: 8420, contact: "manager@lumiere.az", lastActive: "2 min ago", features: { ordering: true, payment: true } },
+  { id: "2", name: "The House Cafe", location: "Nizami St, AZ", plan: "pro", status: "active", password: "house@baku", joinDate: "2024-02-03", tables: 8, menuItems: 28, ordersToday: 31, revenue: 5180, contact: "info@housecafe.az", lastActive: "18 min ago", features: { ordering: true, payment: false } },
+  { id: "3", name: "Zafferano", location: "Dubai, UAE", plan: "enterprise", status: "active", password: "zaff#2024", joinDate: "2024-03-20", tables: 24, menuItems: 62, ordersToday: 112, revenue: 24600, contact: "ops@zafferano.ae", lastActive: "Just now", features: { ordering: false, payment: false } },
+  { id: "4", name: "Baku Grill House", location: "Sahil, AZ", plan: "starter", status: "disabled", password: "grill123", joinDate: "2024-04-10", tables: 5, menuItems: 18, ordersToday: 0, revenue: 1230, contact: "owner@bakugrill.az", lastActive: "3 days ago", features: { ordering: false, payment: false } },
+  { id: "5", name: "Novikov Baku", location: "Flame Towers, AZ", plan: "enterprise", status: "active", password: "novikov!@#", joinDate: "2024-05-01", tables: 30, menuItems: 88, ordersToday: 204, revenue: 51200, contact: "baku@novikov.com", lastActive: "5 min ago", features: { ordering: true, payment: true } },
+  { id: "6", name: "Chinar", location: "Bulvar, AZ", plan: "starter", status: "suspended", password: "chinar22", joinDate: "2024-06-18", tables: 6, menuItems: 22, ordersToday: 0, revenue: 3100, contact: "chinar@mail.ru", lastActive: "12 days ago", features: { ordering: true, payment: false } },
 ];
 
 const PLAN_META = {
@@ -42,6 +44,79 @@ const STATUS_META = {
 };
 
 const fmt = (n) => `$${Number(n).toLocaleString()}`;
+
+function featureBadgeLabel(f) {
+  const ordering = !!f?.ordering;
+  const payment = !!f?.payment;
+  if (!ordering) return "Menu Only";
+  if (ordering && payment) return "Ordering + Pay";
+  return "Ordering";
+}
+
+function CreamToggle({ checked, onChange, disabled }) {
+  return (
+    <button type="button" role="switch" aria-checked={checked} disabled={disabled}
+      onClick={() => !disabled && onChange(!checked)}
+      style={{
+        width: 44, height: 24, borderRadius: 12,
+        background: disabled ? "#ede7da" : checked ? "#1a1714" : "#d4c9b8",
+        cursor: disabled ? "not-allowed" : "pointer",
+        transition: "background 0.2s",
+        position: "relative",
+        flexShrink: 0,
+        border: "none",
+        padding: 0,
+        opacity: disabled ? 0.55 : 1,
+      }}>
+      <span style={{
+        position: "absolute",
+        top: 2,
+        left: checked ? 22 : 2,
+        width: 20,
+        height: 20,
+        borderRadius: "50%",
+        background: "#faf7f2",
+        boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+        transition: "left 0.2s",
+        pointerEvents: "none",
+      }} />
+    </button>
+  );
+}
+
+function FeatureFields({ form, setForm }) {
+  const f = form.features || { ...DEFAULT_FEATURES };
+  const setF = (patch) => setForm((p) => {
+    const next = { ...(p.features || DEFAULT_FEATURES), ...patch };
+    if (!next.ordering) next.payment = false;
+    return { ...p, features: next };
+  });
+  return (
+    <div style={{ gridColumn: "1 / -1", marginTop: 8, paddingTop: 18, borderTop: "1px solid #ede7da" }}>
+      <div style={{ fontSize: 10, fontFamily: "DM Mono", color: "#a89880", letterSpacing: "0.12em", marginBottom: 14 }}>FEATURES & PERMISSIONS</div>
+      <div style={{ background: "#faf7f2", border: "1px solid #e4dcd0", borderRadius: 12, padding: "4px 16px 4px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 0", borderBottom: "1px solid #e4dcd0" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1714", marginBottom: 4 }}>Allow Ordering</div>
+            <div style={{ fontSize: 11, color: "#8a7d6b", fontFamily: "DM Mono", lineHeight: 1.5, maxWidth: 340 }}>
+              Lets customers add items to cart and place orders from their phone
+            </div>
+          </div>
+          <CreamToggle checked={!!f.ordering} onChange={(v) => setF({ ordering: v })} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "14px 0" }}>
+          <div>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "#1a1714", marginBottom: 4 }}>Allow Payment</div>
+            <div style={{ fontSize: 11, color: "#8a7d6b", fontFamily: "DM Mono", lineHeight: 1.5, maxWidth: 340 }}>
+              Lets customers pay directly from their phone (only relevant if ordering is on)
+            </div>
+          </div>
+          <CreamToggle checked={!!f.payment} onChange={(v) => setF({ payment: v })} disabled={!f.ordering} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function Login({ onLogin }) {
   const [pw, setPw] = useState("");
@@ -88,7 +163,10 @@ function MField({ label, children, style }) {
 }
 
 function EditModal({ restaurant, onSave, onClose }) {
-  const [form, setForm] = useState({ ...restaurant });
+  const [form, setForm] = useState(() => ({
+    ...restaurant,
+    features: restaurant.features ? { ...restaurant.features } : { ...DEFAULT_FEATURES },
+  }));
   const [showPw, setShowPw] = useState(false);
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   return (
@@ -136,6 +214,7 @@ function EditModal({ restaurant, onSave, onClose }) {
           <MField label="Join Date">
             <input style={S.inp} type="date" value={form.joinDate} onChange={e => set("joinDate", e.target.value)} />
           </MField>
+          <FeatureFields form={form} setForm={setForm} />
         </div>
         <div style={{ display:"flex", gap:10, marginTop:24, justifyContent:"flex-end" }}>
           <button style={S.ghostBtn} onClick={onClose}>Cancel</button>
@@ -147,7 +226,7 @@ function EditModal({ restaurant, onSave, onClose }) {
 }
 
 function AddModal({ onSave, onClose }) {
-  const [form, setForm] = useState({ name:"", location:"", contact:"", password:"", plan:"pro", status:"active", tables:10, joinDate: new Date().toISOString().split("T")[0] });
+  const [form, setForm] = useState({ name:"", location:"", contact:"", password:"", plan:"pro", status:"active", tables:10, joinDate: new Date().toISOString().split("T")[0], features: { ...DEFAULT_FEATURES } });
   const set = (k, v) => setForm(p => ({ ...p, [k]: v }));
   const valid = form.name.trim() && form.password.trim();
   return (
@@ -180,6 +259,7 @@ function AddModal({ onSave, onClose }) {
           <MField label="Tables">
             <input style={S.inp} type="number" value={form.tables} onChange={e => set("tables", e.target.value)} />
           </MField>
+          <FeatureFields form={form} setForm={setForm} />
         </div>
         <div style={{ display:"flex", gap:10, marginTop:24, justifyContent:"flex-end" }}>
           <button style={S.ghostBtn} onClick={onClose}>Cancel</button>
@@ -192,10 +272,16 @@ function AddModal({ onSave, onClose }) {
   );
 }
 
-function DetailDrawer({ restaurant: r, onEdit, onDelete, onToggle, onClose }) {
+function DetailDrawer({ restaurant: r, onEdit, onDelete, onToggle, onClose, onFeaturesChange }) {
   const [showPw, setShowPw] = useState(false);
+  const f = r.features || { ...DEFAULT_FEATURES };
   const sm = STATUS_META[r.status];
   const pm = PLAN_META[r.plan];
+  const setFeature = (key, val) => {
+    const next = { ...f, [key]: val };
+    if (!next.ordering) next.payment = false;
+    onFeaturesChange(r.id, next);
+  };
   return (
     <div style={{ ...S.overlay, justifyContent:"flex-end", alignItems:"stretch" }} onClick={onClose}>
       <div className="fade-in" style={S.drawer} onClick={e => e.stopPropagation()}>
@@ -244,6 +330,25 @@ function DetailDrawer({ restaurant: r, onEdit, onDelete, onToggle, onClose }) {
             </button>
           </div>
         </div>
+        <div style={{ marginBottom: 24 }}>
+          <div style={{ fontSize: 10, fontFamily: "DM Mono", color: "#a89880", letterSpacing: "0.12em", marginBottom: 10 }}>FEATURES & PERMISSIONS</div>
+          <div style={{ background: "#faf7f2", border: "1px solid #e4dcd0", borderRadius: 12, padding: "4px 14px 4px" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 0", borderBottom: "1px solid #e4dcd0" }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#1a1714" }}>Allow Ordering</div>
+                <div style={{ fontSize: 10, color: "#8a7d6b", fontFamily: "DM Mono", marginTop: 3, lineHeight: 1.45 }}>Cart & phone orders</div>
+              </div>
+              <CreamToggle checked={!!f.ordering} onChange={(v) => setFeature("ordering", v)} />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "12px 0" }}>
+              <div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#1a1714" }}>Allow Payment</div>
+                <div style={{ fontSize: 10, color: "#8a7d6b", fontFamily: "DM Mono", marginTop: 3, lineHeight: 1.45 }}>Pay from phone</div>
+              </div>
+              <CreamToggle checked={!!f.payment} onChange={(v) => setFeature("payment", v)} disabled={!f.ordering} />
+            </div>
+          </div>
+        </div>
         <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
           <button style={S.drawerBtn} onClick={() => onEdit(r)}>✏️ Edit Restaurant</button>
           <button style={{ ...S.drawerBtn, color: r.status==="active" ? "#b45309" : "#2e7d32" }} onClick={() => onToggle(r.id)}>
@@ -289,12 +394,18 @@ export default function SuperAdmin() {
 
   const showToast = (msg, type="ok") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2800); };
   const saveEdit = (form) => { setRestaurants(p => p.map(r => r.id===form.id ? { ...r, ...form } : r)); setEditModal(null); setDetail(null); showToast("Restaurant updated ✓"); };
-  const addRestaurant = (form) => { setRestaurants(p => [...p, { ...form, id: Date.now().toString(), menuItems:0, ordersToday:0, revenue:0, lastActive:"Just now" }]); setAddModal(false); showToast("Restaurant created ✓"); };
+  const addRestaurant = (form) => { setRestaurants(p => [...p, { ...form, id: Date.now().toString(), menuItems:0, ordersToday:0, revenue:0, lastActive:"Just now", features: form.features || { ...DEFAULT_FEATURES } }]); setAddModal(false); showToast("Restaurant created ✓"); };
   const deleteRestaurant = (id) => { setRestaurants(p => p.filter(r => r.id!==id)); setConfirmDelete(null); setDetail(null); showToast("Restaurant deleted", "warn"); };
   const toggleStatus = (id) => {
     setRestaurants(p => p.map(r => r.id!==id ? r : { ...r, status: r.status==="active" ? "disabled" : "active" }));
     setDetail(prev => prev ? { ...prev, status: prev.status==="active" ? "disabled" : "active" } : prev);
     showToast("Status updated ✓");
+  };
+
+  const saveRestaurantFeatures = (id, features) => {
+    setRestaurants((p) => p.map((r) => (r.id === id ? { ...r, features: { ...features } } : r)));
+    setDetail((prev) => (prev && prev.id === id ? { ...prev, features: { ...features } } : prev));
+    showToast("Features updated ✓");
   };
 
   const filtered = restaurants.filter(r => {
@@ -378,27 +489,32 @@ export default function SuperAdmin() {
             </div>
             <div style={S.table}>
               <div style={S.thead}>
-                <span style={{ flex:3 }}>Restaurant</span>
-                <span style={{ flex:2 }}>Plan</span>
-                <span style={{ flex:2 }}>Status</span>
-                <span style={{ flex:2 }}>Revenue</span>
-                <span style={{ flex:2 }}>Orders Today</span>
+                <span style={{ flex:2.6 }}>Restaurant</span>
+                <span style={{ flex:1.6 }}>Plan</span>
+                <span style={{ flex:1.8 }}>Features</span>
+                <span style={{ flex:1.6 }}>Status</span>
+                <span style={{ flex:1.6 }}>Revenue</span>
+                <span style={{ flex:1.4 }}>Orders Today</span>
                 <span style={{ flex:1 }}>Actions</span>
               </div>
               {filtered.length===0 && <div style={{ padding:"48px", textAlign:"center", color:"#c4b8a8", fontFamily:"DM Mono", fontSize:13 }}>No restaurants found</div>}
               {filtered.map(r => {
                 const sm = STATUS_META[r.status];
                 const pm = PLAN_META[r.plan];
+                const fl = featureBadgeLabel(r.features);
                 return (
                   <div key={r.id} className="row-hover" style={S.trow} onClick={() => setDetail(r)}>
-                    <span style={{ flex:3 }}>
+                    <span style={{ flex:2.6 }}>
                       <div style={{ fontWeight:700, fontSize:14, color:"#1a1714" }}>{r.name}</div>
                       <div style={{ fontSize:11, color:"#a89880", fontFamily:"DM Mono", marginTop:3 }}>{r.location} · {r.lastActive}</div>
                     </span>
-                    <span style={{ flex:2 }}><span style={{ fontSize:11, fontFamily:"DM Mono", padding:"3px 10px", borderRadius:20, background:pm.color, color:pm.text }}>{pm.label}</span></span>
-                    <span style={{ flex:2 }}><span style={{ fontSize:11, fontFamily:"DM Mono", padding:"3px 10px", borderRadius:20, background:sm.bg, color:sm.text }}>● {sm.label}</span></span>
-                    <span style={{ flex:2, fontFamily:"DM Mono", fontSize:14, color:"#1a1714", fontWeight:600 }}>{fmt(r.revenue)}</span>
-                    <span style={{ flex:2, fontFamily:"DM Mono", fontSize:14, color: r.ordersToday>0 ? "#2e7d32" : "#c4b8a8" }}>{r.ordersToday}</span>
+                    <span style={{ flex:1.6 }}><span style={{ fontSize:11, fontFamily:"DM Mono", padding:"3px 10px", borderRadius:20, background:pm.color, color:pm.text }}>{pm.label}</span></span>
+                    <span style={{ flex:1.8 }}>
+                      <span style={{ fontSize:10, fontFamily:"DM Mono", padding:"4px 10px", borderRadius:20, background:"#ede7da", color:"#5c4f3d", fontWeight:600, whiteSpace:"nowrap" }}>{fl}</span>
+                    </span>
+                    <span style={{ flex:1.6 }}><span style={{ fontSize:11, fontFamily:"DM Mono", padding:"3px 10px", borderRadius:20, background:sm.bg, color:sm.text }}>● {sm.label}</span></span>
+                    <span style={{ flex:1.6, fontFamily:"DM Mono", fontSize:14, color:"#1a1714", fontWeight:600 }}>{fmt(r.revenue)}</span>
+                    <span style={{ flex:1.4, fontFamily:"DM Mono", fontSize:14, color: r.ordersToday>0 ? "#2e7d32" : "#c4b8a8" }}>{r.ordersToday}</span>
                     <span style={{ flex:1, display:"flex", gap:5 }} onClick={e=>e.stopPropagation()}>
                       <button className="icon-btn" style={S.iconBtn} onClick={() => setEditModal(r)}>✏️</button>
                       <button className="icon-btn" style={S.iconBtn} onClick={() => toggleStatus(r.id)}>{r.status==="active"?"⏸":"▶"}</button>
@@ -473,7 +589,7 @@ export default function SuperAdmin() {
                     <span style={{ flex:2, fontSize:12, fontFamily:"DM Mono", color: r.status==="active" ? "#2e7d32" : "#c62828" }}>{r.status==="active" ? "● Paying" : "○ Inactive"}</span>
                     <span style={{ flex:2, fontFamily:"DM Mono", color:"#a89880", fontSize:12 }}>{r.status==="active" ? "May 15, 2026" : "—"}</span>
                   </div>
-                );s
+                );
               })}
             </div>
           </div>
@@ -528,7 +644,7 @@ export default function SuperAdmin() {
       {editModal    && <EditModal restaurant={editModal} onSave={saveEdit} onClose={() => setEditModal(null)} />}
       {addModal     && <AddModal onSave={addRestaurant} onClose={() => setAddModal(false)} />}
       {confirmDelete && <Confirm msg={`Delete "${restaurants.find(r=>r.id===confirmDelete)?.name}"?`} onConfirm={() => deleteRestaurant(confirmDelete)} onCancel={() => setConfirmDelete(null)} />}
-      {detail       && <DetailDrawer restaurant={detail} onEdit={r => { setEditModal(r); setDetail(null); }} onDelete={id => { setDetail(null); setConfirmDelete(id); }} onToggle={toggleStatus} onClose={() => setDetail(null)} />}
+      {detail       && <DetailDrawer restaurant={detail} onEdit={r => { setEditModal(r); setDetail(null); }} onDelete={id => { setDetail(null); setConfirmDelete(id); }} onToggle={toggleStatus} onFeaturesChange={saveRestaurantFeatures} onClose={() => setDetail(null)} />}
 
       {toast && (
         <div style={{ ...S.toast, background: toast.type==="warn" ? "#fdecea" : "#eaf5ea", color: toast.type==="warn" ? "#c62828" : "#2e7d32", border:`1px solid ${toast.type==="warn"?"#f5c6c6":"#c6e6c6"}` }}>

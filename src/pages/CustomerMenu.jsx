@@ -22,6 +22,9 @@ const GS = () => (
 
 const RESTAURANT = { name: "The House Cafe", tagline: "Nizami St · Baku", table: 3 };
 
+/** Demo flags — replace with API / restaurant record later */
+const RESTAURANT_FEATURES = { ordering: true, payment: false };
+
 const CATS = [
   { id:"1", name:"Starters",  icon:"🥗" },
   { id:"2", name:"Mains",     icon:"🍽️" },
@@ -45,7 +48,7 @@ const ITEMS = [
 
 const fmt = (n) => `$${Number(n).toFixed(2)}`;
 
-function ItemSheet({ item, onClose, onAdd }) {
+function ItemSheet({ item, onClose, onAdd, orderingEnabled }) {
   const [qty, setQty] = useState(1);
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
@@ -69,25 +72,31 @@ function ItemSheet({ item, onClose, onAdd }) {
               <span key={a} style={{ fontSize:11, color:"#a89880", border:"1px solid #e4dcd0", borderRadius:20, padding:"3px 10px" }}>{a}</span>
             ))}
           </div>
-          <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-            <div style={{ display:"flex", alignItems:"center", background:"#f5f0e8", borderRadius:28, padding:"4px" }}>
-              <button onClick={()=>setQty(q=>Math.max(1,q-1))} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:qty===1?"transparent":"#fff", cursor:"pointer", fontSize:18, fontWeight:600, color:"#1a140e", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:qty===1?"none":"0 1px 4px rgba(0,0,0,0.1)" }}>−</button>
-              <span style={{ width:36, textAlign:"center", fontWeight:700, fontSize:16, color:"#1a140e" }}>{qty}</span>
-              <button onClick={()=>setQty(q=>q+1)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:"#1a140e", cursor:"pointer", fontSize:18, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+          {orderingEnabled ? (
+            <div style={{ display:"flex", alignItems:"center", gap:16 }}>
+              <div style={{ display:"flex", alignItems:"center", background:"#f5f0e8", borderRadius:28, padding:"4px" }}>
+                <button onClick={()=>setQty(q=>Math.max(1,q-1))} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:qty===1?"transparent":"#fff", cursor:"pointer", fontSize:18, fontWeight:600, color:"#1a140e", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:qty===1?"none":"0 1px 4px rgba(0,0,0,0.1)" }}>−</button>
+                <span style={{ width:36, textAlign:"center", fontWeight:700, fontSize:16, color:"#1a140e" }}>{qty}</span>
+                <button onClick={()=>setQty(q=>q+1)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:"#1a140e", cursor:"pointer", fontSize:18, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+              </div>
+              <button onClick={()=>{ onAdd(item, qty); onClose(); }}
+                style={{ flex:1, background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span>Add to Order</span>
+                <span style={{ fontWeight:700 }}>{fmt(item.price * qty)}</span>
+              </button>
             </div>
-            <button onClick={()=>{ onAdd(item, qty); onClose(); }}
-              style={{ flex:1, background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-              <span>Add to Order</span>
-              <span style={{ fontWeight:700 }}>{fmt(item.price * qty)}</span>
-            </button>
-          </div>
+          ) : (
+            <div style={{ paddingTop:4, fontSize:13, color:"#a89880", textAlign:"center", lineHeight:1.5 }}>
+              Ask your waiter to order · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
-function CartSheet({ cart, onClose, onQtyChange }) {
+function CartSheet({ cart, onClose, onQtyChange, paymentEnabled }) {
   const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const [placed, setPlaced] = useState(false);
 
@@ -95,8 +104,12 @@ function CartSheet({ cart, onClose, onQtyChange }) {
     <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(26,20,14,0.6)" }}>
       <div className="fade-up" style={{ background:"#fff", borderRadius:24, padding:"40px 32px", textAlign:"center", margin:24, maxWidth:320 }}>
         <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>Order Placed!</div>
-        <div style={{ fontSize:14, color:"#8a7d6b", marginBottom:24, lineHeight:1.5 }}>Your order has been sent to the kitchen. A waiter will confirm shortly.</div>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{paymentEnabled ? "Order Placed!" : "Sent to the team!"}</div>
+        <div style={{ fontSize:14, color:"#8a7d6b", marginBottom:24, lineHeight:1.5 }}>
+          {paymentEnabled
+            ? "Your order has been sent to the kitchen. You can complete payment on the next step when available."
+            : "Your order has been sent to the kitchen. A waiter will come to your table shortly."}
+        </div>
         <div style={{ fontSize:13, color:"#a89880" }}>Table {RESTAURANT.table}</div>
       </div>
     </div>
@@ -135,9 +148,11 @@ function CartSheet({ cart, onClose, onQtyChange }) {
             <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#1a140e" }}>{fmt(total)}</span>
           </div>
           <button onClick={()=>setPlaced(true)} style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans" }}>
-            Place Order →
+            {paymentEnabled ? "Place Order & Pay →" : "Send Order to Waiter →"}
           </button>
-          <div style={{ textAlign:"center", fontSize:12, color:"#c4b8a8", marginTop:10 }}>Payment at the table</div>
+          <div style={{ textAlign:"center", fontSize:12, color:"#c4b8a8", marginTop:10 }}>
+            {paymentEnabled ? "Secure payment from your phone" : "A waiter will come to your table"}
+          </div>
         </div>
       </div>
     </div>
@@ -169,6 +184,9 @@ export default function CustomerMenu() {
   const cartCount = cart.reduce((s,i)=>s+i.qty,0);
   const cartTotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const filtered  = ITEMS.filter(i=>i.cat===activeCat);
+  const orderingOn = RESTAURANT_FEATURES.ordering === true;
+  const paymentOn = RESTAURANT_FEATURES.payment === true;
+  const bottomPad = orderingOn ? 120 : 72;
 
   return (
     <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#faf8f4", display:"flex", flexDirection:"column", position:"relative" }}>
@@ -198,7 +216,7 @@ export default function CustomerMenu() {
         </div>
       </header>
 
-      <div style={{ flex:1, padding:"16px 16px 120px" }}>
+      <div style={{ flex:1, padding:`16px 16px ${bottomPad}px` }}>
         <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
           {filtered.map((item, i) => (
             <div key={item.id} className="item-card fade-up" style={{ animationDelay:`${i*0.05}s`, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(26,20,14,0.06)", cursor:"pointer" }}
@@ -216,12 +234,14 @@ export default function CustomerMenu() {
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12 }}>
                     <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
+                    {orderingOn ? (
                     <button className="add-btn"
                       onClick={e=>{ e.stopPropagation(); addToCart(item); }}
                       style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
                         background: addedId===item.id?"#4caf50":"#1a140e", color:"#fff" }}>
                       {addedId===item.id?"✓":"+"}
                     </button>
+                    ) : <span style={{ width:34 }} aria-hidden />}
                   </div>
                 </div>
                 <div style={{ width:120, flexShrink:0 }}>
@@ -233,7 +253,7 @@ export default function CustomerMenu() {
         </div>
       </div>
 
-      {cartCount > 0 && (
+      {orderingOn && cartCount > 0 && (
         <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", width:"calc(100% - 32px)", maxWidth:448, zIndex:100 }}>
           <button onClick={()=>setShowCart(true)}
             style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontFamily:"DM Sans", boxShadow:"0 8px 32px rgba(26,20,14,0.25)" }}>
@@ -246,8 +266,18 @@ export default function CustomerMenu() {
         </div>
       )}
 
-      {selectedItem && <ItemSheet item={selectedItem} onClose={()=>setSelectedItem(null)} onAdd={addToCart} />}
-      {showCart && <CartSheet cart={cart} onClose={()=>setShowCart(false)} onQtyChange={changeQty} />}
+      {!orderingOn && (
+        <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:90, display:"flex", justifyContent:"center", pointerEvents:"none" }}>
+          <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(250,248,244,0.98) 60%, transparent)" }}>
+            <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#a89880", letterSpacing:"0.02em", lineHeight:1.5 }}>
+              Scan to view our menu · Ask your waiter to order
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedItem && <ItemSheet item={selectedItem} orderingEnabled={orderingOn} onClose={()=>setSelectedItem(null)} onAdd={addToCart} />}
+      {orderingOn && showCart && <CartSheet cart={cart} onClose={()=>setShowCart(false)} onQtyChange={changeQty} paymentEnabled={paymentOn} />}
     </div>
   );
 }

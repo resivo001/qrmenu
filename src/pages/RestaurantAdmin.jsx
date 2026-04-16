@@ -20,7 +20,7 @@ const GS = () => (
   `}</style>
 );
 
-const RESTAURANT = { name: "The House Cafe", location: "Nizami St, Baku", plan: "pro", tables: 8 };
+const RESTAURANT = { name: "The House Cafe", location: "Nizami St, Baku", plan: "pro", tables: 8, features: { ordering: true, payment: false } };
 
 const INIT_CATS = [
   { id: "1", name: "Starters",     icon: "🥗", sort: 1 },
@@ -268,9 +268,46 @@ function QRSection({ tables }) {
   );
 }
 
+function AdminToggle({ checked, onChange, disabled }) {
+  return (
+    <div
+      role="switch"
+      aria-checked={checked}
+      onClick={() => !disabled && onChange(!checked)}
+      style={{
+        width: 44,
+        height: 24,
+        borderRadius: 12,
+        background: disabled ? "#ede7da" : checked ? "#1a1714" : "#ddd",
+        cursor: disabled ? "not-allowed" : "pointer",
+        transition: "background 0.2s",
+        position: "relative",
+        flexShrink: 0,
+        opacity: disabled ? 0.45 : 1,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          top: 2,
+          left: checked ? 22 : 2,
+          width: 20,
+          height: 20,
+          borderRadius: "50%",
+          background: "#fff",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+          transition: "left 0.2s",
+          pointerEvents: "none",
+        }}
+      />
+    </div>
+  );
+}
+
 export default function RestaurantAdmin() {
   const [authed, setAuthed] = useState(false);
   const [tab, setTab] = useState("orders");
+  const [features, setFeatures] = useState(() => ({ ...RESTAURANT.features }));
   const [cats, setCats] = useState(INIT_CATS);
   const [items, setItems] = useState(INIT_ITEMS);
   const [orders, setOrders] = useState(INIT_ORDERS);
@@ -488,6 +525,30 @@ export default function RestaurantAdmin() {
                 <input type="password" placeholder="Leave blank to keep current" style={S.inp} />
               </div>
               <button style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4 }}>Save Settings</button>
+            </div>
+            <div style={{ marginTop:16, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24 }}>
+              <div style={{ fontSize:11, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em", marginBottom:16 }}>FEATURES</div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", gap:16 }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:600, color:"#1a1714", fontFamily:"Syne", marginBottom:4 }}>Online Ordering</div>
+                  <div style={{ fontSize:12, color:"#8a7d6b", lineHeight:1.45 }}>Allow customers to order directly from their phone</div>
+                </div>
+                <AdminToggle
+                  checked={features.ordering}
+                  onChange={(v) => setFeatures((f) => ({ ...f, ordering: v, payment: v ? f.payment : false }))}
+                />
+              </div>
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0 0", borderTop:"1px solid #f0ebe4", marginTop:4, gap:16 }}>
+                <div>
+                  <div style={{ fontSize:13, fontWeight:600, color:"#1a1714", fontFamily:"Syne", marginBottom:4 }}>Online Payment</div>
+                  <div style={{ fontSize:12, color:"#8a7d6b", lineHeight:1.45 }}>Allow customers to pay from their phone (requires ordering to be enabled)</div>
+                </div>
+                <AdminToggle
+                  checked={features.payment}
+                  disabled={!features.ordering}
+                  onChange={(v) => setFeatures((f) => ({ ...f, payment: v }))}
+                />
+              </div>
             </div>
           </div>
         )}
