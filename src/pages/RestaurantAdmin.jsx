@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
+import { supabase } from "../supabase";
 
 const MENU_QR_BASE = "https://qrmenu-virid.vercel.app/menu";
 
@@ -54,34 +55,6 @@ const GS = () => (
   `}</style>
 );
 
-const RESTAURANT = { name: "The House Cafe", location: "Nizami St, Baku", plan: "pro", tables: 8, features: { ordering: true, payment: false } };
-
-const INIT_CATS = [
-  { id: "1", name: "Starters",     icon: "🥗", sort: 1 },
-  { id: "2", name: "Main Course",  icon: "🍽️", sort: 2 },
-  { id: "3", name: "Desserts",     icon: "🍮", sort: 3 },
-  { id: "4", name: "Drinks",       icon: "🥂", sort: 4 },
-];
-
-const INIT_ITEMS = [
-  { id:"1",  cat:"1", name:"Burrata & Heirloom Tomato",  desc:"Creamy burrata, heirloom tomatoes, aged balsamic, micro basil", price:18, img:"https://images.unsplash.com/photo-1607877361964-d41a1f258be2?w=400&q=80", available:true },
-  { id:"2",  cat:"1", name:"Tuna Tartare",               desc:"Yellowfin tuna, avocado mousse, sesame oil, crispy wonton",      price:24, img:"https://images.unsplash.com/photo-1534482421-64566f976cfa?w=400&q=80", available:true },
-  { id:"3",  cat:"1", name:"Foie Gras Torchon",          desc:"House-cured foie gras, brioche, fig jam, Sauternes gelée",       price:32, img:"https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&q=80", available:false },
-  { id:"4",  cat:"2", name:"Wagyu Beef Tenderloin",      desc:"A5 Wagyu, truffle jus, pomme purée, seasonal vegetables",        price:95, img:"https://images.unsplash.com/photo-1546964124-0cce460f38ef?w=400&q=80", available:true },
-  { id:"5",  cat:"2", name:"Pan-Seared Sea Bass",        desc:"Mediterranean sea bass, saffron beurre blanc, fennel, capers",   price:52, img:"https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400&q=80", available:true },
-  { id:"6",  cat:"3", name:"Chocolate Soufflé",          desc:"Valrhona dark chocolate, vanilla crème anglaise, sea salt",      price:16, img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=400&q=80", available:true },
-  { id:"7",  cat:"3", name:"Crème Brûlée",               desc:"Madagascar vanilla, caramelised sugar, seasonal berries",        price:14, img:"https://images.unsplash.com/photo-1470324161839-ce2bb6fa6bc3?w=400&q=80", available:true },
-  { id:"8",  cat:"4", name:"Signature Negroni",          desc:"Gin, Campari, sweet vermouth, orange peel, smoked ice",          price:22, img:"https://images.unsplash.com/photo-1514362453360-8f94243c9996?w=400&q=80", available:true },
-  { id:"9",  cat:"4", name:"Château Margaux 2018",       desc:"Bordeaux Premier Grand Cru Classé, glass",                       price:85, img:"https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=400&q=80", available:true },
-];
-
-const INIT_ORDERS = [
-  { id:"o1", table:3, status:"new",       items:[{name:"Wagyu Beef Tenderloin",qty:1},{name:"Signature Negroni",qty:2}], total:139, time:"2 min ago" },
-  { id:"o2", table:7, status:"preparing", items:[{name:"Tuna Tartare",qty:2},{name:"Crème Brûlée",qty:2}],              total:76,  time:"8 min ago" },
-  { id:"o3", table:1, status:"ready",     items:[{name:"Burrata & Heirloom Tomato",qty:1}],                             total:18,  time:"14 min ago" },
-  { id:"o4", table:5, status:"done",      items:[{name:"Pan-Seared Sea Bass",qty:2},{name:"Château Margaux 2018",qty:1}],total:189, time:"32 min ago" },
-];
-
 const ORDER_META = {
   new:       { label:"New",       bg:"#fef6e8", text:"#b45309", dot:"#f59e0b" },
   preparing: { label:"Preparing", bg:"#e8ecf5", text:"#3d55a0", dot:"#5c6bc0" },
@@ -91,33 +64,105 @@ const ORDER_META = {
 
 const fmt = (n) => `$${Number(n).toFixed(2)}`;
 
-function Login({ onLogin }) {
+function normalizeFeatures(row) {
+  const f = row?.features;
+  if (f && typeof f === "object" && !Array.isArray(f)) {
+    return { ordering: f.ordering !== false, payment: !!f.payment };
+  }
+  return { ordering: true, payment: false };
+}
+
+function formatRelativeTime(iso) {
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return "—";
+  const s = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (s < 60) return `${s || 1} sec ago`;
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} hr ago`;
+  return `${Math.floor(s / 86400)} days ago`;
+}
+
+function parseOrderItems(raw) {
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw === "string") {
+    try {
+      const v = JSON.parse(raw);
+      return Array.isArray(v) ? v : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function mapCategoryFromDb(row) {
+  return {
+    id: String(row.id),
+    name: row.name ?? "",
+    icon: row.icon || "🍽️",
+    sort: row.sort_order ?? row.sort ?? 0,
+  };
+}
+
+function mapItemFromDb(row) {
+  return {
+    id: String(row.id),
+    cat: String(row.category_id ?? row.cat ?? ""),
+    name: row.name ?? "",
+    desc: row.description ?? row.desc ?? "",
+    price: Number(row.price ?? 0),
+    img: row.image_url ?? row.img ?? "",
+    available: !!row.available,
+  };
+}
+
+function mapOrderFromDb(row) {
+  const items = parseOrderItems(row.items).map((it) => ({
+    name: it.name ?? "",
+    qty: Number(it.qty ?? it.quantity ?? 1),
+  }));
+  return {
+    id: String(row.id),
+    table: row.table_number ?? row.table ?? 0,
+    status: row.status,
+    items,
+    total: Number(row.total ?? 0),
+    time: formatRelativeTime(row.created_at),
+  };
+}
+
+function Login({ onLogin, busy }) {
   const [pw, setPw] = useState("");
   const [err, setErr] = useState(false);
   const [shake, setShake] = useState(false);
-  const attempt = () => {
-    if (pw === "admin123") { onLogin(); }
-    else { setErr(true); setShake(true); setTimeout(() => setShake(false), 500); }
+  const attempt = async () => {
+    setErr(false);
+    const ok = await onLogin(pw);
+    if (!ok) {
+      setErr(true);
+      setShake(true);
+      setTimeout(() => setShake(false), 500);
+    }
   };
   return (
     <div style={{ minHeight:"100vh", background:"#f5f0e8", display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"Syne, sans-serif" }}>
       <GS />
       <div className="fade-up" style={{ width:380, padding:"48px 40px", background:"#fff", border:"1px solid #e4dcd0", borderRadius:20, boxShadow:"0 4px 32px rgba(0,0,0,0.06)" }}>
         <div style={{ width:48, height:48, background:"#1a1714", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, marginBottom:24 }}>🍽️</div>
-        <div style={{ fontSize:24, fontWeight:800, color:"#1a1714", letterSpacing:"-0.02em", marginBottom:4 }}>{RESTAURANT.name}</div>
-        <div style={{ fontSize:12, color:"#a89880", fontFamily:"DM Mono", marginBottom:36 }}>Restaurant Admin · {RESTAURANT.location}</div>
+        <div style={{ fontSize:24, fontWeight:800, color:"#1a1714", letterSpacing:"-0.02em", marginBottom:4 }}>Restaurant Admin</div>
+        <div style={{ fontSize:12, color:"#a89880", fontFamily:"DM Mono", marginBottom:36 }}>Sign in with your restaurant password</div>
         <div style={{ fontSize:10, color:"#b0a090", fontFamily:"DM Mono", letterSpacing:"0.12em", marginBottom:8 }}>PASSWORD</div>
-        <input type="password" value={pw} autoFocus
+        <input type="password" value={pw} autoFocus disabled={busy}
           onChange={e => { setPw(e.target.value); setErr(false); }}
-          onKeyDown={e => e.key==="Enter" && attempt()}
+          onKeyDown={e => e.key==="Enter" && !busy && attempt()}
           placeholder="Enter your password"
-          style={{ width:"100%", background:"#faf7f2", border:`1.5px solid ${err?"#ef5350":"#e4dcd0"}`, borderRadius:10, padding:"12px 14px", color:"#1a1714", fontSize:14, fontFamily:"DM Mono", animation:shake?"shake 0.4s ease":"none", transition:"border-color 0.2s" }}
+          style={{ width:"100%", background:"#faf7f2", border:`1.5px solid ${err?"#ef5350":"#e4dcd0"}`, borderRadius:10, padding:"12px 14px", color:"#1a1714", fontSize:14, fontFamily:"DM Mono", animation:shake?"shake 0.4s ease":"none", transition:"border-color 0.2s", opacity:busy?0.7:1 }}
         />
         {err && <div style={{ color:"#c62828", fontSize:11, fontFamily:"DM Mono", marginTop:6 }}>Incorrect password</div>}
-        <button type="button" className="btn-accent" onClick={attempt} style={{ marginTop:20, width:"100%", background:"#1a1714", color:"#f5f0e8", border:"none", borderRadius:10, padding:"13px", fontSize:13, fontWeight:700, cursor:"pointer", fontFamily:"Syne", minHeight:44 }}>
-          Sign In →
+        <button type="button" className="btn-accent" disabled={busy} onClick={attempt} style={{ marginTop:20, width:"100%", background:"#1a1714", color:"#f5f0e8", border:"none", borderRadius:10, padding:"13px", fontSize:13, fontWeight:700, cursor:busy?"wait":"pointer", fontFamily:"Syne", minHeight:44, opacity:busy?0.85:1 }}>
+          {busy ? "Signing in…" : "Sign In →"}
         </button>
-        <div style={{ marginTop:16, fontSize:11, color:"#c4b8a8", fontFamily:"DM Mono", textAlign:"center" }}>demo: <span style={{ color:"#8a7d6b" }}>admin123</span></div>
       </div>
     </div>
   );
@@ -181,7 +226,7 @@ function ItemModal({ item, cats, onSave, onClose }) {
 }
 
 function CatModal({ cat, onSave, onClose }) {
-  const [form, setForm] = useState(cat||{name:"",icon:"🍽️"});
+  const [form, setForm] = useState(() => (cat ? { ...cat, sort: cat.sort ?? 0 } : { name: "", icon: "🍽️", sort: 0 }));
   const ICONS = ["🥗","🍽️","🍮","🥂","🍣","🥩","🥘","🍰","☕","🍹","🥐","🍜","🫕","🥙","🧆"];
   const valid = form.name.trim();
   return (
@@ -361,11 +406,14 @@ function AdminToggle({ checked, onChange, disabled }) {
 
 export default function RestaurantAdmin() {
   const [authed, setAuthed] = useState(false);
-  const [tab, setTab] = useState("orders");
-  const [features, setFeatures] = useState(() => ({ ...RESTAURANT.features }));
-  const [cats, setCats] = useState(INIT_CATS);
-  const [items, setItems] = useState(INIT_ITEMS);
-  const [orders, setOrders] = useState(INIT_ORDERS);
+  const [loginBusy, setLoginBusy] = useState(false);
+  const [restaurant, setRestaurant] = useState(null);
+  const [dataLoading, setDataLoading] = useState(false);
+  const [tab, setTab] = useState("menu");
+  const [features, setFeatures] = useState({ ordering: true, payment: false });
+  const [cats, setCats] = useState([]);
+  const [items, setItems] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [filterCat, setFilterCat] = useState("all");
   const [itemModal, setItemModal] = useState(null);
@@ -373,39 +421,226 @@ export default function RestaurantAdmin() {
   const [confirmDel, setConfirmDel] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const showToast = (msg, type="ok") => { setToast({msg,type}); setTimeout(()=>setToast(null), 2500); };
+  const showToast = (msg, type = "ok") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 3500);
+  };
 
-  const saveItem = (form) => {
-    const data = { ...form, price: Number(form.price) };
-    if (form.id) { setItems(p=>p.map(i=>i.id===form.id?data:i)); showToast("Item updated ✓"); }
-    else { setItems(p=>[...p,{...data,id:Date.now().toString()}]); showToast("Item added ✓"); }
+  const loadRestaurantData = useCallback(async (r) => {
+    const rid = r.id;
+    const [cRes, iRes, oRes] = await Promise.all([
+      supabase.from("categories").select("*").eq("restaurant_id", rid).order("sort_order", { ascending: true }),
+      supabase.from("menu_items").select("*").eq("restaurant_id", rid),
+      supabase.from("orders").select("*").eq("restaurant_id", rid).order("created_at", { ascending: false }),
+    ]);
+    if (cRes.error) showToast(cRes.error.message, "warn");
+    if (iRes.error) showToast(iRes.error.message, "warn");
+    if (oRes.error) showToast(oRes.error.message, "warn");
+    if (!cRes.error) setCats((cRes.data || []).map(mapCategoryFromDb));
+    if (!iRes.error) setItems((iRes.data || []).map(mapItemFromDb));
+    if (!oRes.error) setOrders((oRes.data || []).map(mapOrderFromDb));
+  }, []);
+
+  const refreshOrders = useCallback(async (rid) => {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .eq("restaurant_id", rid)
+      .order("created_at", { ascending: false });
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setOrders((data || []).map(mapOrderFromDb));
+  }, []);
+
+  const handleLogin = async (pw) => {
+    const { data, error } = await supabase.from("restaurants").select("*").eq("password", pw).single();
+    if (error) {
+      if (error.code === "PGRST116") return false;
+      showToast(error.message, "warn");
+      return false;
+    }
+    if (!data) return false;
+    const nf = normalizeFeatures(data);
+    setRestaurant(data);
+    setFeatures(nf);
+    setTab(nf.ordering ? "orders" : "menu");
+    setAuthed(true);
+    setDataLoading(true);
+    await loadRestaurantData(data);
+    setDataLoading(false);
+    return true;
+  };
+
+  const signOut = () => {
+    setAuthed(false);
+    setRestaurant(null);
+    setCats([]);
+    setItems([]);
+    setOrders([]);
+    setTab("menu");
+    setFeatures({ ordering: true, payment: false });
+    setSearch("");
+    setFilterCat("all");
+    setItemModal(null);
+    setCatModal(null);
+    setConfirmDel(null);
+  };
+
+  const saveItem = async (form) => {
+    if (!restaurant?.id) return;
+    const row = {
+      restaurant_id: restaurant.id,
+      category_id: form.cat,
+      name: form.name.trim(),
+      description: form.desc || "",
+      price: Number(form.price),
+      image_url: form.img || "",
+      available: !!form.available,
+    };
+    if (form.id) {
+      const { error } = await supabase.from("menu_items").update(row).eq("id", form.id).eq("restaurant_id", restaurant.id);
+      if (error) {
+        showToast(error.message, "warn");
+        return;
+      }
+      setItems((p) =>
+        p.map((i) =>
+          i.id === String(form.id)
+            ? { ...i, cat: String(form.cat), name: row.name, desc: row.description, price: row.price, img: row.image_url, available: row.available }
+            : i
+        )
+      );
+      showToast("Item updated ✓");
+    } else {
+      const { data, error } = await supabase.from("menu_items").insert(row).select().single();
+      if (error) {
+        showToast(error.message, "warn");
+        return;
+      }
+      setItems((p) => [...p, mapItemFromDb(data)]);
+      showToast("Item added ✓");
+    }
     setItemModal(null);
   };
 
-  const deleteItem = (id) => { setItems(p=>p.filter(i=>i.id!==id)); setConfirmDel(null); showToast("Deleted","warn"); };
-  const toggleAvail = (id) => setItems(p=>p.map(i=>i.id===id?{...i,available:!i.available}:i));
-
-  const saveCat = (form) => {
-    if (form.id) { setCats(p=>p.map(c=>c.id===form.id?{...form}:c)); }
-    else { setCats(p=>[...p,{...form,id:Date.now().toString(),sort:p.length+1}]); }
-    setCatModal(null); showToast("Category saved ✓");
+  const deleteItem = async (id) => {
+    if (!restaurant?.id) return;
+    const { error } = await supabase.from("menu_items").delete().eq("id", id).eq("restaurant_id", restaurant.id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setItems((p) => p.filter((i) => i.id !== String(id)));
+    setConfirmDel(null);
+    showToast("Deleted", "warn");
   };
 
-  const updateOrderStatus = (id, status) => {
-    setOrders(p=>p.map(o=>o.id===id?{...o,status}:o));
+  const toggleAvail = async (id) => {
+    if (!restaurant?.id) return;
+    const cur = items.find((i) => i.id === String(id));
+    if (!cur) return;
+    const next = !cur.available;
+    const { error } = await supabase.from("menu_items").update({ available: next }).eq("id", id).eq("restaurant_id", restaurant.id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setItems((p) => p.map((i) => (i.id === String(id) ? { ...i, available: next } : i)));
+  };
+
+  const saveCat = async (form) => {
+    if (!restaurant?.id) return;
+    const base = {
+      restaurant_id: restaurant.id,
+      name: form.name.trim(),
+      icon: form.icon || "🍽️",
+    };
+    if (form.id) {
+      const { error } = await supabase
+        .from("categories")
+        .update({ ...base, sort_order: form.sort ?? 0 })
+        .eq("id", form.id)
+        .eq("restaurant_id", restaurant.id);
+      if (error) {
+        showToast(error.message, "warn");
+        return;
+      }
+      setCats((p) => p.map((c) => (c.id === String(form.id) ? { ...c, name: base.name, icon: base.icon, sort: form.sort ?? 0 } : c)));
+      showToast("Category saved ✓");
+    } else {
+      const nextSort = cats.length ? Math.max(...cats.map((c) => c.sort)) + 1 : 1;
+      const { data, error } = await supabase.from("categories").insert({ ...base, sort_order: nextSort }).select().single();
+      if (error) {
+        showToast(error.message, "warn");
+        return;
+      }
+      setCats((p) => [...p, mapCategoryFromDb(data)]);
+      showToast("Category saved ✓");
+    }
+    setCatModal(null);
+  };
+
+  const deleteCategory = async (id) => {
+    if (!restaurant?.id) return;
+    const { error } = await supabase.from("categories").delete().eq("id", id).eq("restaurant_id", restaurant.id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setCats((p) => p.filter((c) => c.id !== String(id)));
+    setConfirmDel(null);
+    showToast("Deleted", "warn");
+  };
+
+  const updateOrderStatus = async (id, status) => {
+    if (!restaurant?.id) return;
+    const { error } = await supabase.from("orders").update({ status }).eq("id", id).eq("restaurant_id", restaurant.id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setOrders((p) => p.map((o) => (o.id === String(id) ? { ...o, status } : o)));
     showToast(`Order marked ${ORDER_META[status].label}`);
   };
 
-  const catName = (id) => cats.find(c=>c.id===id)?.name || "—";
+  const persistFeatures = async (next) => {
+    if (!restaurant?.id) return;
+    const { error } = await supabase.from("restaurants").update({ features: next }).eq("id", restaurant.id);
+    if (error) showToast(error.message, "warn");
+  };
 
-  const filteredItems = items.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase()) && (filterCat==="all" || i.cat===filterCat)
+  const catName = (id) => cats.find((c) => c.id === id)?.name || "—";
+
+  const filteredItems = items.filter(
+    (i) => i.name.toLowerCase().includes(search.toLowerCase()) && (filterCat === "all" || i.cat === filterCat)
   );
 
-  const newOrders = orders.filter(o=>o.status==="new").length;
-  const todayRevenue = orders.reduce((s,o)=>s+o.total,0);
+  const newOrders = orders.filter((o) => o.status === "new").length;
+  const todayRevenue = orders.reduce((s, o) => s + o.total, 0);
+  const displayTab = !features.ordering && tab === "orders" ? "menu" : tab;
 
-  if (!authed) return <Login onLogin={()=>setAuthed(true)} />;
+  useEffect(() => {
+    if (!authed || !restaurant?.id) return undefined;
+    const channel = supabase
+      .channel("orders")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurant.id}` },
+        () => {
+          void refreshOrders(restaurant.id);
+        }
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [authed, restaurant?.id, refreshOrders]);
+
+  if (!authed) return <Login busy={loginBusy} onLogin={async (pw) => { setLoginBusy(true); try { return await handleLogin(pw); } finally { setLoginBusy(false); } }} />;
+
+  const tablesCount = Number(restaurant?.tables) || 0;
 
   return (
     <div className="admin-root" style={S.root}>
@@ -413,8 +648,8 @@ export default function RestaurantAdmin() {
       <aside className="admin-sidebar" style={S.sidebar}>
         <div style={S.sideTop}>
           <div style={{ fontSize:28, marginBottom:10 }}>🍽️</div>
-          <div style={S.restName}>{RESTAURANT.name}</div>
-          <div style={{ fontSize:9, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.12em", marginTop:2 }}>{RESTAURANT.location}</div>
+          <div style={S.restName}>{restaurant?.name}</div>
+          <div style={{ fontSize:9, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.12em", marginTop:2 }}>{restaurant?.location}</div>
         </div>
         <nav className="admin-sidebar-nav" style={{ padding:"12px 0", flex:1 }}>
           {[
@@ -423,9 +658,9 @@ export default function RestaurantAdmin() {
             { key:"categories", icon:"📂", label:"Categories" },
             { key:"qr",         icon:"📱", label:"QR Codes" },
             { key:"settings",   icon:"⚙️",  label:"Settings" },
-          ].map(({key,icon,label,badge})=>(
+          ].filter((entry) => features.ordering || entry.key !== "orders").map(({key,icon,label,badge})=>(
             <button type="button" key={key} className="nav-hover" onClick={()=>setTab(key)}
-              style={{ ...S.navBtn, ...(tab===key?S.navActive:{}) }}>
+              style={{ ...S.navBtn, ...(displayTab===key?S.navActive:{}) }}>
               <span style={{ fontSize:15 }}>{icon}</span>
               <span style={{ flex:1 }}>{label}</span>
               {badge && <span style={{ background:"#c62828", color:"#fff", fontSize:10, fontFamily:"DM Mono", fontWeight:700, padding:"2px 7px", borderRadius:20 }}>{badge}</span>}
@@ -434,14 +669,20 @@ export default function RestaurantAdmin() {
         </nav>
         <div style={S.sideFooter}>
           <div style={{ fontSize:10, fontFamily:"DM Mono", color:"#c4b8a8", marginBottom:4 }}>Plan</div>
-          <div style={{ fontSize:12, fontFamily:"DM Mono", color:"#3d7a3d", fontWeight:600, marginBottom:12 }}>● {RESTAURANT.plan}</div>
+          <div style={{ fontSize:12, fontFamily:"DM Mono", color:"#3d7a3d", fontWeight:600, marginBottom:12 }}>● {restaurant?.plan}</div>
           <button type="button" className="btn-signout" style={{ width:"100%", background:"transparent", border:"1px solid #e4dcd0", borderRadius:8, padding:"10px", color:"#a89880", fontSize:11, fontFamily:"DM Mono", cursor:"pointer", minHeight:40 }}
-            onClick={()=>setAuthed(false)}>Sign Out</button>
+            onClick={signOut}>Sign Out</button>
         </div>
       </aside>
 
       <main className="admin-main" style={S.main}>
-        {tab==="orders" && (
+        {dataLoading ? (
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:240, fontFamily:"DM Mono", fontSize:14, color:"#a89880" }}>
+            Loading…
+          </div>
+        ) : (
+          <>
+        {displayTab==="orders" && (
           <div className="fade-up">
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24 }}>
               <div>
@@ -471,7 +712,7 @@ export default function RestaurantAdmin() {
           </div>
         )}
 
-        {tab==="menu" && (
+        {displayTab==="menu" && (
           <div className="fade-up">
             <div className="menu-toolbar" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
               <div>
@@ -537,7 +778,7 @@ export default function RestaurantAdmin() {
           </div>
         )}
 
-        {tab==="categories" && (
+        {displayTab==="categories" && (
           <div className="fade-up">
             <div className="menu-toolbar" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
               <div>
@@ -572,18 +813,18 @@ export default function RestaurantAdmin() {
           </div>
         )}
 
-        {tab==="qr" && <QRSection tables={RESTAURANT.tables} />}
+        {displayTab==="qr" && <QRSection tables={tablesCount} />}
 
-        {tab==="settings" && (
+        {displayTab==="settings" && (
           <div className="fade-up" style={{ maxWidth:520 }}>
             <h1 style={S.pageTitle}>Settings</h1>
             <p style={S.pageSub}>Restaurant configuration</p>
             <div style={{ marginTop:24, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24, display:"flex", flexDirection:"column", gap:16 }}>
               {[
-                { label:"Restaurant Name", val:RESTAURANT.name },
-                { label:"Location",        val:RESTAURANT.location },
-                { label:"Contact Email",   val:"info@housecafe.az" },
-                { label:"Menu URL",        val:"menu.app/housecafe" },
+                { label:"Restaurant Name", val:restaurant?.name ?? "" },
+                { label:"Location",        val:restaurant?.location ?? "" },
+                { label:"Contact Email",   val:restaurant?.contact_email ?? "" },
+                { label:"Menu URL",        val:restaurant?.menu_url ?? "" },
               ].map(({label,val})=>(
                 <div key={label} style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>{label.toUpperCase()}</label>
@@ -605,7 +846,14 @@ export default function RestaurantAdmin() {
                 </div>
                 <AdminToggle
                   checked={features.ordering}
-                  onChange={(v) => setFeatures((f) => ({ ...f, ordering: v, payment: v ? f.payment : false }))}
+                  onChange={(v) => {
+                    if (!v) setTab((t) => (t === "orders" ? "menu" : t));
+                    setFeatures((f) => {
+                      const next = { ordering: v, payment: v ? f.payment : false };
+                      void persistFeatures(next);
+                      return next;
+                    });
+                  }}
                 />
               </div>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0 0", borderTop:"1px solid #f0ebe4", marginTop:4, gap:16 }}>
@@ -616,17 +864,46 @@ export default function RestaurantAdmin() {
                 <AdminToggle
                   checked={features.payment}
                   disabled={!features.ordering}
-                  onChange={(v) => setFeatures((f) => ({ ...f, payment: v }))}
+                  onChange={(v) => {
+                    setFeatures((f) => {
+                      const next = { ...f, payment: v };
+                      void persistFeatures(next);
+                      return next;
+                    });
+                  }}
                 />
               </div>
             </div>
           </div>
         )}
+          </>
+        )}
       </main>
 
-      {itemModal && <ItemModal item={itemModal==="new"?null:itemModal} cats={cats} onSave={saveItem} onClose={()=>setItemModal(null)} />}
-      {catModal  && <CatModal  cat={catModal==="new"?null:catModal} onSave={saveCat} onClose={()=>setCatModal(null)} />}
-      {confirmDel && <Confirm msg={`Delete "${confirmDel.name}"?`} onConfirm={()=>confirmDel.type==="item"?deleteItem(confirmDel.id):(setCats(p=>p.filter(c=>c.id!==confirmDel.id)),setConfirmDel(null),showToast("Deleted","warn"))} onCancel={()=>setConfirmDel(null)} />}
+      {itemModal && (
+        <ItemModal
+          key={itemModal === "new" ? "new-item" : itemModal.id}
+          item={itemModal === "new" ? null : itemModal}
+          cats={cats}
+          onSave={saveItem}
+          onClose={() => setItemModal(null)}
+        />
+      )}
+      {catModal && (
+        <CatModal
+          key={catModal === "new" ? "new-cat" : catModal.id}
+          cat={catModal === "new" ? null : catModal}
+          onSave={saveCat}
+          onClose={() => setCatModal(null)}
+        />
+      )}
+      {confirmDel && (
+        <Confirm
+          msg={`Delete "${confirmDel.name}"?`}
+          onConfirm={() => (confirmDel.type === "item" ? deleteItem(confirmDel.id) : deleteCategory(confirmDel.id))}
+          onCancel={() => setConfirmDel(null)}
+        />
+      )}
 
       {toast && (
         <div style={{ position:"fixed", bottom:28, left:"50%", transform:"translateX(-50%)", padding:"11px 22px", borderRadius:28, fontSize:12, fontFamily:"DM Mono", fontWeight:500, zIndex:999, background:toast.type==="warn"?"#fdecea":"#eaf5ea", color:toast.type==="warn"?"#c62828":"#2e7d32", border:`1px solid ${toast.type==="warn"?"#f5c6c6":"#c6e6c6"}` }}>
