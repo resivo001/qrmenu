@@ -37,9 +37,10 @@ const fmt = (n) => `$${Number(n).toFixed(2)}`;
 function normalizeFeatures(row) {
   const f = row?.features;
   if (f && typeof f === "object" && !Array.isArray(f)) {
-    return { ordering: f.ordering !== false, payment: !!f.payment };
+    const ordering = f.ordering === true;
+    return { ordering, payment: ordering && !!f.payment };
   }
-  return { ordering: true, payment: false };
+  return { ordering: false, payment: false };
 }
 
 function mapCategoryFromDb(row) {
@@ -217,7 +218,7 @@ export default function CustomerMenu() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
   const [restaurant, setRestaurant] = useState(null);
-  const [features, setFeatures] = useState({ ordering: true, payment: false });
+  const [features, setFeatures] = useState({ ordering: false, payment: false });
   const [cats, setCats] = useState([]);
   const [items, setItems] = useState([]);
   const [activeCat, setActiveCat] = useState("");

@@ -67,9 +67,10 @@ const fmt = (n) => `$${Number(n).toFixed(2)}`;
 function normalizeFeatures(row) {
   const f = row?.features;
   if (f && typeof f === "object" && !Array.isArray(f)) {
-    return { ordering: f.ordering !== false, payment: !!f.payment };
+    const ordering = f.ordering === true;
+    return { ordering, payment: ordering && !!f.payment };
   }
-  return { ordering: true, payment: false };
+  return { ordering: false, payment: false };
 }
 
 function formatRelativeTime(iso) {
@@ -318,15 +319,14 @@ function OrderCard({ order, onStatusChange }) {
   );
 }
 
-function TableQRCard({ tableNum }) {
+function QRCard({ url, headline, downloadFilename, qrTitle }) {
   const canvasRef = useRef(null);
-  const url = `${MENU_QR_BASE}?table=${tableNum}`;
   const downloadPng = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const a = document.createElement("a");
     a.href = canvas.toDataURL("image/png");
-    a.download = `table-${tableNum}-qr.png`;
+    a.download = downloadFilename;
     a.click();
   };
   return (
@@ -340,10 +340,10 @@ function TableQRCard({ tableNum }) {
           marginSize={2}
           bgColor="#ffffff"
           fgColor="#1a1714"
-          title={`Menu QR for table ${tableNum}`}
+          title={qrTitle}
         />
       </div>
-      <div style={{ fontWeight:800, fontSize:15, color:"#1a1714" }}>Table {tableNum}</div>
+      <div style={{ fontWeight:800, fontSize:15, color:"#1a1714" }}>{headline}</div>
       <div style={{ fontSize:9, color:"#c4b8a8", fontFamily:"DM Mono", textAlign:"center", wordBreak:"break-all", maxWidth:"100%", lineHeight:1.35 }}>{url}</div>
       <button type="button" className="btn-qr-download" onClick={downloadPng} style={{ fontSize:11, color:"#8a7d6b", border:"1.5px solid #e4dcd0", background:"#fff", borderRadius:8, padding:"8px 16px", cursor:"pointer", fontFamily:"Syne", fontWeight:500, width:"100%", minHeight:40 }}>
         ↓ Download PNG
@@ -352,7 +352,30 @@ function TableQRCard({ tableNum }) {
   );
 }
 
-function QRSection({ tables }) {
+function QRSection({ restaurantId, orderingEnabled, tablesCount }) {
+  const rid = encodeURIComponent(restaurantId);
+  const menuOnlyUrl = `${MENU_QR_BASE}?restaurant=${rid}`;
+  if (!orderingEnabled) {
+    return (
+      <div className="fade-up">
+        <div style={{ marginBottom:24 }}>
+          <h1 style={S.pageTitle}>QR Codes</h1>
+          <p style={S.pageSub}>Guests scan to open your menu</p>
+        </div>
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(168px,1fr))", gap:14 }}>
+          <QRCard
+            url={menuOnlyUrl}
+            headline="Menu QR Code"
+            downloadFilename="menu-qr.png"
+            qrTitle="Menu QR code"
+          />
+        </div>
+        <p style={{ fontSize:11, color:"#a89880", fontFamily:"DM Mono", marginTop:14, maxWidth:480, lineHeight:1.45 }}>
+          Enable Online Ordering in Settings to generate per-table QR codes
+        </p>
+      </div>
+    );
+  }
   return (
     <div className="fade-up">
       <div style={{ marginBottom:24 }}>
@@ -360,8 +383,14 @@ function QRSection({ tables }) {
         <p style={S.pageSub}>One per table — guests scan to view menu & order</p>
       </div>
       <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(168px,1fr))", gap:14 }}>
-        {Array.from({ length: tables }, (_, i) => i + 1).map((t) => (
-          <TableQRCard key={t} tableNum={t} />
+        {Array.from({ length: tablesCount }, (_, i) => i + 1).map((t) => (
+          <QRCard
+            key={t}
+            url={`${MENU_QR_BASE}?restaurant=${rid}&table=${t}`}
+            headline={`Table ${t}`}
+            downloadFilename={`table-${t}-qr.png`}
+            qrTitle={`Menu QR for table ${t}`}
+          />
         ))}
       </div>
     </div>
@@ -410,7 +439,7 @@ export default function RestaurantAdmin() {
   const [restaurant, setRestaurant] = useState(null);
   const [dataLoading, setDataLoading] = useState(false);
   const [tab, setTab] = useState("menu");
-  const [features, setFeatures] = useState({ ordering: true, payment: false });
+  const [features, setFeatures] = useState({ ordering: false, payment: false });
   const [cats, setCats] = useState([]);
   const [items, setItems] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -480,7 +509,7 @@ export default function RestaurantAdmin() {
     setItems([]);
     setOrders([]);
     setTab("menu");
-    setFeatures({ ordering: true, payment: false });
+    setFeatures({ ordering: false, payment: false });
     setSearch("");
     setFilterCat("all");
     setItemModal(null);
@@ -609,6 +638,7 @@ export default function RestaurantAdmin() {
     if (!restaurant?.id) return;
     const { error } = await supabase.from("restaurants").update({ features: next }).eq("id", restaurant.id);
     if (error) showToast(error.message, "warn");
+    else setRestaurant((r) => (r ? { ...r, features: next } : r));
   };
 
   const catName = (id) => cats.find((c) => c.id === id)?.name || "—";
@@ -640,7 +670,7 @@ export default function RestaurantAdmin() {
 
   if (!authed) return <Login busy={loginBusy} onLogin={async (pw) => { setLoginBusy(true); try { return await handleLogin(pw); } finally { setLoginBusy(false); } }} />;
 
-  const tablesCount = Number(restaurant?.tables) || 0;
+  const tablesCount = Number(restaurant?.tables_count ?? restaurant?.tables) || 0;
 
   return (
     <div className="admin-root" style={S.root}>
@@ -813,7 +843,9 @@ export default function RestaurantAdmin() {
           </div>
         )}
 
-        {displayTab==="qr" && <QRSection tables={tablesCount} />}
+        {displayTab==="qr" && restaurant?.id && (
+          <QRSection restaurantId={String(restaurant.id)} orderingEnabled={features.ordering} tablesCount={tablesCount} />
+        )}
 
         {displayTab==="settings" && (
           <div className="fade-up" style={{ maxWidth:520 }}>

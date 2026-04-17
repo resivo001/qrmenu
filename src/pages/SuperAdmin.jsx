@@ -21,12 +21,13 @@ const GlobalStyles = () => (
   `}</style>
 );
 
-const DEFAULT_FEATURES = { ordering: true, payment: false };
+const DEFAULT_FEATURES = { ordering: false, payment: false };
 
 function normalizeFeatures(row) {
   const f = row?.features;
   if (f && typeof f === "object" && !Array.isArray(f)) {
-    return { ordering: f.ordering !== false, payment: !!f.payment };
+    const ordering = f.ordering === true;
+    return { ordering, payment: ordering && !!f.payment };
   }
   return { ...DEFAULT_FEATURES };
 }
