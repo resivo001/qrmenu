@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import { supabase } from "../supabase";
 
 const GlobalStyles = () => (
   <style>{`
@@ -22,14 +23,46 @@ const GlobalStyles = () => (
 
 const DEFAULT_FEATURES = { ordering: true, payment: false };
 
-const MOCK_RESTAURANTS = [
-  { id: "1", name: "Lumière", location: "Port Baku, AZ", plan: "pro", status: "active", password: "lumi2024!", joinDate: "2024-01-15", tables: 12, menuItems: 34, ordersToday: 47, revenue: 8420, contact: "manager@lumiere.az", lastActive: "2 min ago", features: { ordering: true, payment: true } },
-  { id: "2", name: "The House Cafe", location: "Nizami St, AZ", plan: "pro", status: "active", password: "house@baku", joinDate: "2024-02-03", tables: 8, menuItems: 28, ordersToday: 31, revenue: 5180, contact: "info@housecafe.az", lastActive: "18 min ago", features: { ordering: true, payment: false } },
-  { id: "3", name: "Zafferano", location: "Dubai, UAE", plan: "enterprise", status: "active", password: "zaff#2024", joinDate: "2024-03-20", tables: 24, menuItems: 62, ordersToday: 112, revenue: 24600, contact: "ops@zafferano.ae", lastActive: "Just now", features: { ordering: false, payment: false } },
-  { id: "4", name: "Baku Grill House", location: "Sahil, AZ", plan: "starter", status: "disabled", password: "grill123", joinDate: "2024-04-10", tables: 5, menuItems: 18, ordersToday: 0, revenue: 1230, contact: "owner@bakugrill.az", lastActive: "3 days ago", features: { ordering: false, payment: false } },
-  { id: "5", name: "Novikov Baku", location: "Flame Towers, AZ", plan: "enterprise", status: "active", password: "novikov!@#", joinDate: "2024-05-01", tables: 30, menuItems: 88, ordersToday: 204, revenue: 51200, contact: "baku@novikov.com", lastActive: "5 min ago", features: { ordering: true, payment: true } },
-  { id: "6", name: "Chinar", location: "Bulvar, AZ", plan: "starter", status: "suspended", password: "chinar22", joinDate: "2024-06-18", tables: 6, menuItems: 22, ordersToday: 0, revenue: 3100, contact: "chinar@mail.ru", lastActive: "12 days ago", features: { ordering: true, payment: false } },
-];
+function normalizeFeatures(row) {
+  const f = row?.features;
+  if (f && typeof f === "object" && !Array.isArray(f)) {
+    return { ordering: f.ordering !== false, payment: !!f.payment };
+  }
+  return { ...DEFAULT_FEATURES };
+}
+
+function formatLastActive(iso) {
+  if (!iso) return "—";
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return "—";
+  const s = Math.max(0, Math.floor((Date.now() - t) / 1000));
+  if (s < 60) return "Just now";
+  if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)} hr ago`;
+  if (s < 86400 * 2) return "Yesterday";
+  return `${Math.floor(s / 86400)} days ago`;
+}
+
+function mapRestaurantRow(row, extras = {}) {
+  const id = String(row.id);
+  const created = row.created_at ? String(row.created_at).slice(0, 10) : "";
+  return {
+    id,
+    name: row.name ?? "",
+    location: row.location ?? "",
+    plan: row.plan ?? "starter",
+    status: row.status ?? "active",
+    password: row.password ?? "",
+    joinDate: created,
+    tables: Number(row.tables_count ?? row.tables ?? 0),
+    menuItems: extras.menuItems ?? 0,
+    ordersToday: extras.ordersToday ?? 0,
+    revenue: Number(extras.revenue ?? row.revenue ?? 0),
+    contact: row.contact_email ?? row.contact ?? "",
+    lastActive: formatLastActive(row.updated_at || row.created_at),
+    features: normalizeFeatures(row),
+  };
+}
 
 const PLAN_META = {
   starter:    { label: "Starter",    color: "#ede7da", text: "#8a7d6b", price: "$29/mo" },
@@ -382,7 +415,9 @@ function Confirm({ msg, onConfirm, onCancel }) {
 export default function SuperAdmin() {
   const [authed, setAuthed] = useState(false);
   const [tab, setTab] = useState("restaurants");
-  const [restaurants, setRestaurants] = useState(MOCK_RESTAURANTS);
+  const [restaurants, setRestaurants] = useState([]);
+  const [ordersTodayGlobal, setOrdersTodayGlobal] = useState(0);
+  const [listLoading, setListLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterPlan, setFilterPlan] = useState("all");
@@ -392,33 +427,154 @@ export default function SuperAdmin() {
   const [detail, setDetail] = useState(null);
   const [toast, setToast] = useState(null);
 
-  const showToast = (msg, type="ok") => { setToast({ msg, type }); setTimeout(() => setToast(null), 2800); };
-  const saveEdit = (form) => { setRestaurants(p => p.map(r => r.id===form.id ? { ...r, ...form } : r)); setEditModal(null); setDetail(null); showToast("Restaurant updated ✓"); };
-  const addRestaurant = (form) => { setRestaurants(p => [...p, { ...form, id: Date.now().toString(), menuItems:0, ordersToday:0, revenue:0, lastActive:"Just now", features: form.features || { ...DEFAULT_FEATURES } }]); setAddModal(false); showToast("Restaurant created ✓"); };
-  const deleteRestaurant = (id) => { setRestaurants(p => p.filter(r => r.id!==id)); setConfirmDelete(null); setDetail(null); showToast("Restaurant deleted", "warn"); };
-  const toggleStatus = (id) => {
-    setRestaurants(p => p.map(r => r.id!==id ? r : { ...r, status: r.status==="active" ? "disabled" : "active" }));
-    setDetail(prev => prev ? { ...prev, status: prev.status==="active" ? "disabled" : "active" } : prev);
-    showToast("Status updated ✓");
+  const showToast = (msg, type = "ok") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 2800);
   };
 
-  const saveRestaurantFeatures = (id, features) => {
-    setRestaurants((p) => p.map((r) => (r.id === id ? { ...r, features: { ...features } } : r)));
-    setDetail((prev) => (prev && prev.id === id ? { ...prev, features: { ...features } } : prev));
-    showToast("Features updated ✓");
-  };
+  const loadRestaurants = useCallback(async () => {
+    setListLoading(true);
+    const todayStart = new Date().toISOString().slice(0, 10);
+    const { data: rows, error } = await supabase.from("restaurants").select("*").order("created_at", { ascending: false });
+    if (error) {
+      showToast(error.message, "warn");
+      setListLoading(false);
+      return;
+    }
+    const list = rows || [];
+    const ids = list.map((r) => r.id);
 
-  const filtered = restaurants.filter(r => {
-    const ms = r.name.toLowerCase().includes(search.toLowerCase()) || r.location.toLowerCase().includes(search.toLowerCase());
-    return ms && (filterStatus==="all" || r.status===filterStatus) && (filterPlan==="all" || r.plan===filterPlan);
+    const { count: ordersTodayCount, error: countErr } = await supabase
+      .from("orders")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", todayStart);
+    if (countErr) showToast(countErr.message, "warn");
+    else setOrdersTodayGlobal(ordersTodayCount ?? 0);
+
+    const menuBy = {};
+    const revenueBy = {};
+    const ordersTodayBy = {};
+    if (ids.length) {
+      const { data: menuRows, error: mErr } = await supabase.from("menu_items").select("restaurant_id").in("restaurant_id", ids);
+      if (mErr) showToast(mErr.message, "warn");
+      else for (const x of menuRows || []) menuBy[x.restaurant_id] = (menuBy[x.restaurant_id] || 0) + 1;
+
+      const { data: ordRows, error: oErr } = await supabase.from("orders").select("restaurant_id, total, created_at").in("restaurant_id", ids);
+      if (oErr) showToast(oErr.message, "warn");
+      else {
+        for (const o of ordRows || []) {
+          const rid = o.restaurant_id;
+          revenueBy[rid] = (revenueBy[rid] || 0) + Number(o.total || 0);
+          const c = o.created_at;
+          if (c && String(c).slice(0, 10) >= todayStart) ordersTodayBy[rid] = (ordersTodayBy[rid] || 0) + 1;
+        }
+      }
+    }
+
+    const mapped = list.map((r) =>
+      mapRestaurantRow(r, {
+        menuItems: menuBy[r.id] || 0,
+        revenue: revenueBy[r.id] || 0,
+        ordersToday: ordersTodayBy[r.id] || 0,
+      })
+    );
+    setRestaurants(mapped);
+    setDetail((d) => (d ? mapped.find((x) => x.id === d.id) || null : null));
+    setListLoading(false);
+  }, []);
+
+  const restaurantToDbInsert = (form) => ({
+    name: form.name.trim(),
+    location: (form.location || "").trim(),
+    contact_email: (form.contact || "").trim(),
+    password: form.password,
+    plan: form.plan,
+    status: form.status || "active",
+    tables_count: Number(form.tables) || 0,
+    features: form.features || { ...DEFAULT_FEATURES },
   });
 
-  const totalRevenue = restaurants.reduce((s,r) => s+r.revenue, 0);
-  const activeCount = restaurants.filter(r => r.status==="active").length;
-  const totalOrders = restaurants.reduce((s,r) => s+r.ordersToday, 0);
-  const mrr = restaurants.filter(r=>r.status==="active").reduce((s,r) => s+(r.plan==="starter"?29:r.plan==="pro"?79:199), 0);
+  const restaurantToDbUpdate = (form) => ({
+    name: form.name.trim(),
+    location: (form.location || "").trim(),
+    contact_email: (form.contact || "").trim(),
+    password: form.password,
+    plan: form.plan,
+    status: form.status,
+    tables_count: Number(form.tables) || 0,
+    features: form.features || { ...DEFAULT_FEATURES },
+  });
 
-  if (!authed) return <Login onLogin={() => setAuthed(true)} />;
+  const saveEdit = async (form) => {
+    const { error } = await supabase.from("restaurants").update(restaurantToDbUpdate(form)).eq("id", form.id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setEditModal(null);
+    setDetail(null);
+    showToast("Restaurant updated ✓");
+    await loadRestaurants();
+  };
+
+  const addRestaurant = async (form) => {
+    const { error } = await supabase.from("restaurants").insert(restaurantToDbInsert(form));
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setAddModal(false);
+    showToast("Restaurant created ✓");
+    await loadRestaurants();
+  };
+
+  const deleteRestaurant = async (id) => {
+    const { error } = await supabase.from("restaurants").delete().eq("id", id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setConfirmDelete(null);
+    setDetail(null);
+    showToast("Restaurant deleted", "warn");
+    await loadRestaurants();
+  };
+
+  const toggleStatus = async (id) => {
+    const r = restaurants.find((x) => x.id === String(id));
+    if (!r) return;
+    const newStatus = r.status === "active" ? "disabled" : "active";
+    const { error } = await supabase.from("restaurants").update({ status: newStatus }).eq("id", id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setDetail((prev) => (prev && prev.id === String(id) ? { ...prev, status: newStatus } : prev));
+    showToast("Status updated ✓");
+    await loadRestaurants();
+  };
+
+  const saveRestaurantFeatures = async (id, features) => {
+    const { error } = await supabase.from("restaurants").update({ features }).eq("id", id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setDetail((prev) => (prev && prev.id === String(id) ? { ...prev, features: { ...features } } : prev));
+    showToast("Features updated ✓");
+    await loadRestaurants();
+  };
+
+  const filtered = restaurants.filter((r) => {
+    const ms = r.name.toLowerCase().includes(search.toLowerCase()) || r.location.toLowerCase().includes(search.toLowerCase());
+    return ms && (filterStatus === "all" || r.status === filterStatus) && (filterPlan === "all" || r.plan === filterPlan);
+  });
+
+  const totalRevenue = restaurants.reduce((s, r) => s + r.revenue, 0);
+  const activeCount = restaurants.filter((r) => r.status === "active").length;
+  const mrr = restaurants.filter((r) => r.status === "active").reduce((s, r) => s + (r.plan === "starter" ? 29 : r.plan === "pro" ? 79 : 199), 0);
+
+  if (!authed) return <Login onLogin={() => { setAuthed(true); void loadRestaurants(); }} />;
 
   return (
     <div style={S.root}>
@@ -455,12 +611,18 @@ export default function SuperAdmin() {
       <main style={S.main}>
         {tab==="restaurants" && (
           <div className="fade-up">
+            {listLoading ? (
+              <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:220, fontFamily:"DM Mono", fontSize:14, color:"#a89880" }}>
+                Loading…
+              </div>
+            ) : (
+              <>
             <div style={S.kpiRow}>
               {[
                 { label:"Total Restaurants", val: restaurants.length, sub:`${activeCount} active` },
                 { label:"Platform Revenue",  val: fmt(totalRevenue), sub:"all time" },
                 { label:"MRR",               val: fmt(mrr), sub:"from active plans" },
-                { label:"Orders Today",      val: totalOrders, sub:"across all venues" },
+                { label:"Orders Today",      val: ordersTodayGlobal, sub:"across all venues" },
               ].map(({ label, val, sub }) => (
                 <div key={label} style={S.kpiCard}>
                   <div style={S.kpiVal}>{val}</div>
@@ -484,7 +646,7 @@ export default function SuperAdmin() {
                 <option value="enterprise">Enterprise</option>
               </select>
               <div style={{ marginLeft:"auto" }}>
-                <button style={S.accentBtn} onClick={() => setAddModal(true)}>+ Add Restaurant</button>
+                <button type="button" style={S.accentBtn} onClick={() => setAddModal(true)}>+ Add Restaurant</button>
               </div>
             </div>
             <div style={S.table}>
@@ -516,14 +678,16 @@ export default function SuperAdmin() {
                     <span style={{ flex:1.6, fontFamily:"DM Mono", fontSize:14, color:"#1a1714", fontWeight:600 }}>{fmt(r.revenue)}</span>
                     <span style={{ flex:1.4, fontFamily:"DM Mono", fontSize:14, color: r.ordersToday>0 ? "#2e7d32" : "#c4b8a8" }}>{r.ordersToday}</span>
                     <span style={{ flex:1, display:"flex", gap:5 }} onClick={e=>e.stopPropagation()}>
-                      <button className="icon-btn" style={S.iconBtn} onClick={() => setEditModal(r)}>✏️</button>
-                      <button className="icon-btn" style={S.iconBtn} onClick={() => toggleStatus(r.id)}>{r.status==="active"?"⏸":"▶"}</button>
-                      <button className="icon-btn" style={S.iconBtn} onClick={() => setConfirmDelete(r.id)}>🗑</button>
+                      <button type="button" className="icon-btn" style={S.iconBtn} onClick={() => setEditModal(r)}>✏️</button>
+                      <button type="button" className="icon-btn" style={S.iconBtn} onClick={() => void toggleStatus(r.id)}>{r.status==="active"?"⏸":"▶"}</button>
+                      <button type="button" className="icon-btn" style={S.iconBtn} onClick={() => setConfirmDelete(r.id)}>🗑</button>
                     </span>
                   </div>
                 );
               })}
             </div>
+              </>
+            )}
           </div>
         )}
 
@@ -535,7 +699,7 @@ export default function SuperAdmin() {
               {[
                 { label:"Top by Revenue", val:[...restaurants].sort((a,b)=>b.revenue-a.revenue)[0]?.name, sub: fmt([...restaurants].sort((a,b)=>b.revenue-a.revenue)[0]?.revenue) },
                 { label:"Top by Orders", val:[...restaurants].sort((a,b)=>b.ordersToday-a.ordersToday)[0]?.name, sub:`${[...restaurants].sort((a,b)=>b.ordersToday-a.ordersToday)[0]?.ordersToday} orders today` },
-                { label:"Avg Revenue / Restaurant", val: fmt(Math.round(totalRevenue/restaurants.length)), sub:"all time" },
+                { label:"Avg Revenue / Restaurant", val: fmt(restaurants.length ? Math.round(totalRevenue / restaurants.length) : 0), sub:"all time" },
                 { label:"Enterprise Clients", val: restaurants.filter(r=>r.plan==="enterprise").length, sub:`of ${restaurants.length} total` },
               ].map(({ label, val, sub }) => (
                 <div key={label} style={{ background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:"24px" }}>
@@ -549,7 +713,7 @@ export default function SuperAdmin() {
               <div style={{ fontSize:11, fontFamily:"DM Mono", color:"#a89880", marginBottom:20, letterSpacing:"0.1em" }}>REVENUE BY PLAN</div>
               {["enterprise","pro","starter"].map(plan => {
                 const rev = restaurants.filter(r=>r.plan===plan).reduce((s,r)=>s+r.revenue,0);
-                const pct = Math.round((rev/totalRevenue)*100) || 0;
+                const pct = totalRevenue > 0 ? Math.round((rev / totalRevenue) * 100) : 0;
                 const pm = PLAN_META[plan];
                 return (
                   <div key={plan} style={{ marginBottom:18 }}>
@@ -641,10 +805,10 @@ export default function SuperAdmin() {
         )}
       </main>
 
-      {editModal    && <EditModal restaurant={editModal} onSave={saveEdit} onClose={() => setEditModal(null)} />}
-      {addModal     && <AddModal onSave={addRestaurant} onClose={() => setAddModal(false)} />}
-      {confirmDelete && <Confirm msg={`Delete "${restaurants.find(r=>r.id===confirmDelete)?.name}"?`} onConfirm={() => deleteRestaurant(confirmDelete)} onCancel={() => setConfirmDelete(null)} />}
-      {detail       && <DetailDrawer restaurant={detail} onEdit={r => { setEditModal(r); setDetail(null); }} onDelete={id => { setDetail(null); setConfirmDelete(id); }} onToggle={toggleStatus} onFeaturesChange={saveRestaurantFeatures} onClose={() => setDetail(null)} />}
+      {editModal    && <EditModal restaurant={editModal} onSave={(f) => void saveEdit(f)} onClose={() => setEditModal(null)} />}
+      {addModal     && <AddModal onSave={(f) => void addRestaurant(f)} onClose={() => setAddModal(false)} />}
+      {confirmDelete && <Confirm msg={`Delete "${restaurants.find(r=>r.id===confirmDelete)?.name}"?`} onConfirm={() => void deleteRestaurant(confirmDelete)} onCancel={() => setConfirmDelete(null)} />}
+      {detail       && <DetailDrawer restaurant={detail} onEdit={r => { setEditModal(r); setDetail(null); }} onDelete={id => { setDetail(null); setConfirmDelete(id); }} onToggle={(id) => void toggleStatus(id)} onFeaturesChange={(id, f) => void saveRestaurantFeatures(id, f)} onClose={() => setDetail(null)} />}
 
       {toast && (
         <div style={{ ...S.toast, background: toast.type==="warn" ? "#fdecea" : "#eaf5ea", color: toast.type==="warn" ? "#c62828" : "#2e7d32", border:`1px solid ${toast.type==="warn"?"#f5c6c6":"#c6e6c6"}` }}>
