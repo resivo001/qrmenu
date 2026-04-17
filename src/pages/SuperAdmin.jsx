@@ -66,9 +66,9 @@ function mapRestaurantRow(row, extras = {}) {
 }
 
 const PLAN_META = {
-  starter:    { label: "Starter",    color: "#ede7da", text: "#8a7d6b", price: "$29/mo" },
-  pro:        { label: "Pro",        color: "#e8f0e8", text: "#3d7a3d", price: "$79/mo" },
-  enterprise: { label: "Enterprise", color: "#e8ecf5", text: "#3d55a0", price: "$199/mo" },
+  starter:    { label: "Starter",    color: "#ede7da", text: "#8a7d6b", price: "₼29/mo" },
+  pro:        { label: "Pro",        color: "#e8f0e8", text: "#3d7a3d", price: "₼79/mo" },
+  enterprise: { label: "Enterprise", color: "#e8ecf5", text: "#3d55a0", price: "₼199/mo" },
 };
 
 const STATUS_META = {
@@ -77,7 +77,7 @@ const STATUS_META = {
   suspended: { label: "Suspended", bg: "#fdecea", text: "#c62828" },
 };
 
-const fmt = (n) => `$${Number(n).toLocaleString()}`;
+const fmt = (n) => `₼${Number(n).toLocaleString()}`;
 
 function featureBadgeLabel(f) {
   const ordering = !!f?.ordering;
@@ -230,9 +230,9 @@ function EditModal({ restaurant, onSave, onClose }) {
           </MField>
           <MField label="Plan">
             <select style={S.inp} value={form.plan} onChange={e => set("plan", e.target.value)}>
-              <option value="starter">Starter — $29/mo</option>
-              <option value="pro">Pro — $79/mo</option>
-              <option value="enterprise">Enterprise — $199/mo</option>
+              <option value="starter">Starter — ₼29/mo</option>
+              <option value="pro">Pro — ₼79/mo</option>
+              <option value="enterprise">Enterprise — ₼199/mo</option>
             </select>
           </MField>
           <MField label="Status">
@@ -285,9 +285,9 @@ function AddModal({ onSave, onClose }) {
           </MField>
           <MField label="Plan">
             <select style={S.inp} value={form.plan} onChange={e => set("plan", e.target.value)}>
-              <option value="starter">Starter — $29/mo</option>
-              <option value="pro">Pro — $79/mo</option>
-              <option value="enterprise">Enterprise — $199/mo</option>
+              <option value="starter">Starter — ₼29/mo</option>
+              <option value="pro">Pro — ₼79/mo</option>
+              <option value="enterprise">Enterprise — ₼199/mo</option>
             </select>
           </MField>
           <MField label="Tables">

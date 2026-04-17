@@ -62,7 +62,7 @@ const ORDER_META = {
   done:      { label:"Done",      bg:"#f5f0e8", text:"#a89880", dot:"#c4b8a8" },
 };
 
-const fmt = (n) => `$${Number(n).toFixed(2)}`;
+const fmt = (n) => `₼${Number(n).toFixed(2)}`;
 
 function normalizeFeatures(row) {
   const f = row?.features;
@@ -178,10 +178,29 @@ function Field({ label, children, style }) {
   );
 }
 
-function ItemModal({ item, cats, onSave, onClose }) {
+function ItemModal({ item, cats, onSave, onClose, showToast }) {
   const [form, setForm] = useState(item || { name:"", desc:"", price:"", cat:cats[0]?.id, img:"", available:true });
+  const [imageUploading, setImageUploading] = useState(false);
+  const fileInputRef = useRef(null);
   const set = (k,v) => setForm(p=>({...p,[k]:v}));
   const valid = form.name.trim() && form.price;
+  const onImageFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setImageUploading(true);
+    const fileName = `${Date.now()}-${file.name}`;
+    const { error } = await supabase.storage.from("menu_images").upload(fileName, file);
+    if (error) {
+      showToast(error.message, "warn");
+      setImageUploading(false);
+      return;
+    }
+    const { data } = supabase.storage.from("menu_images").getPublicUrl(fileName);
+    const url = data?.publicUrl;
+    if (url) set("img", url);
+    setImageUploading(false);
+  };
   return (
     <div style={S.overlay} onClick={onClose}>
       <div className="fade-up" style={S.modal} onClick={e=>e.stopPropagation()}>
@@ -189,12 +208,11 @@ function ItemModal({ item, cats, onSave, onClose }) {
           <span style={S.modalTitle}>{item?"Edit Item":"New Item"}</span>
           <button type="button" className="btn-close" style={S.closeBtn} onClick={onClose} aria-label="Close">✕</button>
         </div>
-        {form.img && <img src={form.img} alt="" style={{ width:"100%", height:160, objectFit:"cover", borderRadius:10, marginBottom:16 }} onError={e=>e.target.style.display="none"} />}
         <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
           <Field label="Item Name" style={{ gridColumn:"1/-1" }}>
             <input style={S.inp} value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Truffle Risotto" />
           </Field>
-          <Field label="Price ($)">
+          <Field label="Price (₼)">
             <input style={S.inp} type="number" value={form.price} onChange={e=>set("price",e.target.value)} placeholder="0.00" />
           </Field>
           <Field label="Category">
@@ -202,8 +220,14 @@ function ItemModal({ item, cats, onSave, onClose }) {
               {cats.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
             </select>
           </Field>
-          <Field label="Image URL" style={{ gridColumn:"1/-1" }}>
-            <input style={S.inp} value={form.img} onChange={e=>set("img",e.target.value)} placeholder="https://..." />
+          <Field label="Image" style={{ gridColumn:"1/-1" }}>
+            {form.img ? (
+              <img src={form.img} alt="" style={{ width:"100%", height:160, objectFit:"cover", borderRadius:10, marginBottom:10 }} onError={(ev)=>{ ev.target.style.display="none"; }} />
+            ) : null}
+            <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={(ev)=>void onImageFile(ev)} />
+            <button type="button" className="btn-ghost" style={S.ghostBtn} disabled={imageUploading} onClick={()=>fileInputRef.current?.click()}>
+              {imageUploading ? "Uploading..." : "Choose image"}
+            </button>
           </Field>
           <Field label="Description" style={{ gridColumn:"1/-1" }}>
             <textarea style={{ ...S.inp, minHeight:68, resize:"vertical" }} value={form.desc} onChange={e=>set("desc",e.target.value)} placeholder="Describe the dish..." />
@@ -217,7 +241,7 @@ function ItemModal({ item, cats, onSave, onClose }) {
         </div>
         <div style={{ display:"flex", gap:10, justifyContent:"flex-end", flexWrap:"wrap" }}>
           <button type="button" className="btn-ghost" style={S.ghostBtn} onClick={onClose}>Cancel</button>
-          <button type="button" className="btn-accent" style={{ ...S.accentBtn, opacity:valid?1:0.4, cursor:valid?"pointer":"not-allowed" }} disabled={!valid} onClick={()=>valid&&onSave(form)}>
+          <button type="button" className="btn-accent" style={{ ...S.accentBtn, opacity:valid&&!imageUploading?1:0.4, cursor:valid&&!imageUploading?"pointer":"not-allowed" }} disabled={!valid||imageUploading} onClick={()=>valid&&!imageUploading&&onSave(form)}>
             {item?"Save Changes":"Add Item"}
           </button>
         </div>
@@ -449,11 +473,12 @@ export default function RestaurantAdmin() {
   const [catModal, setCatModal] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
   const [toast, setToast] = useState(null);
+  const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     name: "",
     location: "",
     contact_email: "",
-    menu_url: "",
+    tables_count: "",
     new_password: "",
   });
 
@@ -461,6 +486,11 @@ export default function RestaurantAdmin() {
     setToast({ msg, type });
     setTimeout(() => setToast(null), 3500);
   };
+
+  useEffect(() => {
+    if (!authed || !restaurant) return;
+    setFeatures(normalizeFeatures(restaurant));
+  }, [authed, restaurant]);
 
   const loadRestaurantData = useCallback(async (r) => {
     const rid = r.id;
@@ -504,7 +534,7 @@ export default function RestaurantAdmin() {
       name: data.name ?? "",
       location: data.location ?? "",
       contact_email: data.contact_email ?? "",
-      menu_url: data.menu_url ?? "",
+      tables_count: String(data.tables_count ?? data.tables ?? ""),
       new_password: "",
     });
     setFeatures(nf);
@@ -529,7 +559,7 @@ export default function RestaurantAdmin() {
     setItemModal(null);
     setCatModal(null);
     setConfirmDel(null);
-    setSettingsForm({ name: "", location: "", contact_email: "", menu_url: "", new_password: "" });
+    setSettingsForm({ name: "", location: "", contact_email: "", tables_count: "", new_password: "" });
   };
 
   const saveItem = async (form) => {
@@ -657,34 +687,46 @@ export default function RestaurantAdmin() {
   };
 
   const saveSettings = async () => {
-    if (!restaurant?.id) return;
-    const newPassword = settingsForm.new_password.trim();
-    const payload = {
-      name: settingsForm.name.trim(),
-      location: settingsForm.location.trim(),
-      contact_email: settingsForm.contact_email.trim(),
-      menu_url: settingsForm.menu_url.trim(),
-    };
-    if (newPassword) payload.password = newPassword;
-    const { error } = await supabase.from("restaurants").update(payload).eq("id", restaurant.id);
-    if (error) {
-      showToast(error.message, "warn");
+    const rid = restaurant?.id;
+    if (rid == null || rid === "") {
+      showToast("Missing restaurant id", "warn");
       return;
     }
-    setRestaurant((r) =>
-      r
-        ? {
-            ...r,
-            name: payload.name,
-            location: payload.location,
-            contact_email: payload.contact_email,
-            menu_url: payload.menu_url,
-            ...(newPassword ? { password: newPassword } : {}),
-          }
-        : r
-    );
-    setSettingsForm((f) => ({ ...f, new_password: "" }));
-    showToast("Settings saved ✓");
+    setSettingsSaving(true);
+    try {
+      const newPassword = settingsForm.new_password.trim();
+      const tablesNum = Math.max(0, Math.floor(Number(settingsForm.tables_count) || 0));
+      const payload = {
+        name: settingsForm.name.trim(),
+        location: settingsForm.location.trim(),
+        contact_email: settingsForm.contact_email.trim(),
+        tables_count: tablesNum,
+      };
+      if (newPassword) payload.password = newPassword;
+      const { error } = await supabase.from("restaurants").update(payload).eq("id", rid);
+      if (error) {
+        showToast(error.message, "warn");
+        return;
+      }
+      setRestaurant((r) =>
+        r
+          ? {
+              ...r,
+              name: payload.name,
+              location: payload.location,
+              contact_email: payload.contact_email,
+              tables_count: tablesNum,
+              ...(newPassword ? { password: newPassword } : {}),
+            }
+          : r
+      );
+      setSettingsForm((f) => ({ ...f, new_password: "" }));
+      showToast("Settings saved ✓");
+    } catch (e) {
+      showToast(e?.message || String(e), "warn");
+    } finally {
+      setSettingsSaving(false);
+    }
   };
 
   const catName = (id) => cats.find((c) => c.id === id)?.name || "—";
@@ -902,7 +944,6 @@ export default function RestaurantAdmin() {
                 { label:"Restaurant Name", key:"name" },
                 { label:"Location",        key:"location" },
                 { label:"Contact Email",   key:"contact_email" },
-                { label:"Menu URL",        key:"menu_url" },
               ].map(({ label, key }) => (
                 <div key={label} style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>{label.toUpperCase()}</label>
@@ -910,9 +951,21 @@ export default function RestaurantAdmin() {
                     style={S.inp}
                     value={settingsForm[key]}
                     onChange={(e) => setSettingsForm((p) => ({ ...p, [key]: e.target.value }))}
+                    disabled={settingsSaving}
                   />
                 </div>
               ))}
+              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NUMBER OF TABLES</label>
+                <input
+                  type="number"
+                  min={0}
+                  style={S.inp}
+                  value={settingsForm.tables_count}
+                  onChange={(e) => setSettingsForm((p) => ({ ...p, tables_count: e.target.value }))}
+                  disabled={settingsSaving}
+                />
+              </div>
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                 <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NEW PASSWORD</label>
                 <input
@@ -921,10 +974,19 @@ export default function RestaurantAdmin() {
                   style={S.inp}
                   value={settingsForm.new_password}
                   onChange={(e) => setSettingsForm((p) => ({ ...p, new_password: e.target.value }))}
+                  disabled={settingsSaving}
                 />
               </div>
-              <button type="button" className="btn-accent" style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4 }} onClick={() => void saveSettings()}>
-                Save Settings
+              <button
+                type="button"
+                className="btn-accent"
+                disabled={settingsSaving}
+                style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4, opacity: settingsSaving ? 0.85 : 1, cursor: settingsSaving ? "wait" : "pointer" }}
+                onClick={() => {
+                  void saveSettings();
+                }}
+              >
+                {settingsSaving ? "Saving..." : "Save Settings"}
               </button>
             </div>
             <div style={{ marginTop:16, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24 }}>
@@ -977,6 +1039,7 @@ export default function RestaurantAdmin() {
           cats={cats}
           onSave={saveItem}
           onClose={() => setItemModal(null)}
+          showToast={showToast}
         />
       )}
       {catModal && (
