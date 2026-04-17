@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "../supabase";
 
 const DEFAULT_RESTAURANT_ID = "ac4e5a27-a9dd-46cf-b6c9-45469c1aaa7b";
@@ -103,6 +103,14 @@ const UI = {
 function stringsFor(lang) {
   return UI[lang] || UI.EN;
 }
+
+const LANG_FLAG = { AZ: "🇦🇿", RU: "🇷🇺", EN: "🇬🇧" };
+
+const LANG_OPTIONS = [
+  { code: "AZ", flag: "🇦🇿", label: "Azərbaycanca" },
+  { code: "RU", flag: "🇷🇺", label: "Русский" },
+  { code: "EN", flag: "🇬🇧", label: "English" },
+];
 
 function normalizeFeatures(row) {
   const f = row?.features;
@@ -284,13 +292,24 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
   );
 }
 
-const LANG_CODES = ["AZ", "RU", "EN"];
-
 export default function CustomerMenu() {
   const { restaurantId, tableNum } = useMemo(() => readUrlContext(), []);
 
-  const [lang, setLang] = useState("EN");
+  const [lang, setLang] = useState("AZ");
   const t = useMemo(() => stringsFor(lang), [lang]);
+  const [langMenuOpen, setLangMenuOpen] = useState(false);
+  const langMenuWrapRef = useRef(null);
+
+  useEffect(() => {
+    if (!langMenuOpen) return;
+    const close = (e) => {
+      if (langMenuWrapRef.current && !langMenuWrapRef.current.contains(e.target)) {
+        setLangMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [langMenuOpen]);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -418,32 +437,79 @@ export default function CustomerMenu() {
               </div>
             ) : null}
           </div>
-          <div
-            role="group"
-            aria-label="Language"
-            style={{ display:"flex", marginTop:4, borderRadius:20, border:"1px solid #e4dcd0", overflow:"hidden", flexShrink:0 }}
-          >
-            {LANG_CODES.map((code, i) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => setLang(code)}
+          <div ref={langMenuWrapRef} style={{ position:"relative", marginTop:4, flexShrink:0 }}>
+            <button
+              type="button"
+              aria-label="Language"
+              aria-haspopup="listbox"
+              aria-expanded={langMenuOpen}
+              onClick={() => setLangMenuOpen((o) => !o)}
+              style={{
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"center",
+                width:44,
+                height:36,
+                padding:0,
+                borderRadius:20,
+                border:"1px solid #e4dcd0",
+                background:"#fff",
+                cursor:"pointer",
+                fontSize:22,
+                lineHeight:1,
+              }}
+            >
+              {LANG_FLAG[lang] || LANG_FLAG.AZ}
+            </button>
+            {langMenuOpen ? (
+              <div
+                role="listbox"
                 style={{
-                  padding:"6px 12px",
-                  fontSize:11,
-                  fontWeight:600,
-                  fontFamily:"DM Mono, monospace",
-                  border:"none",
-                  borderLeft: i ? "1px solid #e4dcd0" : "none",
-                  cursor:"pointer",
-                  background: lang === code ? "#1a140e" : "transparent",
-                  color: lang === code ? "#faf8f4" : "#8a7d6b",
-                  lineHeight:1.2,
+                  position:"absolute",
+                  top:"100%",
+                  right:0,
+                  marginTop:6,
+                  minWidth:188,
+                  background:"#fff",
+                  border:"1px solid #e4dcd0",
+                  borderRadius:12,
+                  boxShadow:"0 8px 24px rgba(26,20,14,0.08)",
+                  padding:"6px 0",
+                  zIndex:60,
                 }}
               >
-                {code}
-              </button>
-            ))}
+                {LANG_OPTIONS.map(({ code, flag, label }) => (
+                  <button
+                    key={code}
+                    type="button"
+                    role="option"
+                    aria-selected={lang === code}
+                    onClick={() => {
+                      setLang(code);
+                      setLangMenuOpen(false);
+                    }}
+                    style={{
+                      display:"flex",
+                      alignItems:"center",
+                      gap:10,
+                      width:"100%",
+                      padding:"10px 14px",
+                      border:"none",
+                      background:"transparent",
+                      cursor:"pointer",
+                      fontFamily:"DM Sans, sans-serif",
+                      fontSize:13,
+                      fontWeight:500,
+                      color:"#1a140e",
+                      textAlign:"left",
+                    }}
+                  >
+                    <span style={{ fontSize:18, lineHeight:1 }} aria-hidden>{flag}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
         </div>
         <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:16, scrollbarWidth:"none" }}>
