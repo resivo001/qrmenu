@@ -5,7 +5,7 @@ const DEFAULT_RESTAURANT_ID = "ac4e5a27-a9dd-46cf-b6c9-45469c1aaa7b";
 
 const GS = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; }
     body { background: #faf8f4; font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
@@ -33,6 +33,76 @@ const GS = () => (
 );
 
 const fmt = (n) => `₼${Number(n).toFixed(2)}`;
+
+const UI = {
+  EN: {
+    scanPrompt: "Scan to view our menu · Ask your waiter to order",
+    viewOrder: "View Order",
+    yourOrder: "Your Order",
+    placeOrderBtn: "Place Order →",
+    sendWaiterBtn: "Send Order to Waiter →",
+    paymentSubtitle: "Payment at the table",
+    waiterSubtitle: "A waiter will come to your table",
+    orderPlacedTitle: "Order Placed!",
+    orderSentTitle: "Sent to the team!",
+    successBody: "Your order has been sent to the kitchen. A waiter will confirm shortly.",
+    total: "Total",
+    addToOrder: "Add to Order",
+    askWaiterOrder: "Ask your waiter to order",
+    sending: "Sending…",
+    tableLabel: "Table",
+    loading: "Loading…",
+    loadFailTitle: "Couldn't load menu",
+    restaurantNotFound: "Restaurant not found",
+    orderErrorGeneric: "Something went wrong",
+  },
+  AZ: {
+    scanPrompt: "Menüyə baxmaq üçün skan edin · Ofisiant sifariş alacaq",
+    viewOrder: "Sifarişə bax",
+    yourOrder: "Sifarişiniz",
+    placeOrderBtn: "Sifariş ver →",
+    sendWaiterBtn: "Ofisiantə göndər →",
+    paymentSubtitle: "Masada ödəniş",
+    waiterSubtitle: "Ofisiant gələcək",
+    orderPlacedTitle: "Sifariş qəbul edildi!",
+    orderSentTitle: "Komandaya göndərildi!",
+    successBody: "Sifarişiniz mətbəxə göndərildi. Ofisiant təsdiqləyəcək.",
+    total: "Cəmi",
+    addToOrder: "Əlavə et",
+    askWaiterOrder: "Sifariş üçün ofisianta müraciət edin",
+    sending: "Göndərilir…",
+    tableLabel: "Masa",
+    loading: "Yüklənir…",
+    loadFailTitle: "Menü yüklənmədi",
+    restaurantNotFound: "Restoran tapılmadı",
+    orderErrorGeneric: "Xəta baş verdi",
+  },
+  RU: {
+    scanPrompt: "Сканируйте меню · Официант примет заказ",
+    viewOrder: "Посмотреть заказ",
+    yourOrder: "Ваш заказ",
+    placeOrderBtn: "Оформить заказ →",
+    sendWaiterBtn: "Отправить официанту →",
+    paymentSubtitle: "Оплата за столом",
+    waiterSubtitle: "Официант подойдет",
+    orderPlacedTitle: "Заказ принят!",
+    orderSentTitle: "Отправлено!",
+    successBody: "Заказ отправлен на кухню. Официант подтвердит.",
+    total: "Итого",
+    addToOrder: "Добавить",
+    askWaiterOrder: "Попросите официанта принять заказ",
+    sending: "Отправка…",
+    tableLabel: "Стол",
+    loading: "Загрузка…",
+    loadFailTitle: "Не удалось загрузить меню",
+    restaurantNotFound: "Ресторан не найден",
+    orderErrorGeneric: "Что-то пошло не так",
+  },
+};
+
+function stringsFor(lang) {
+  return UI[lang] || UI.EN;
+}
 
 function normalizeFeatures(row) {
   const f = row?.features;
@@ -76,7 +146,7 @@ function readUrlContext() {
   return { restaurantId, tableNum };
 }
 
-function ItemSheet({ item, onClose, onAdd, orderingEnabled }) {
+function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
   const [qty, setQty] = useState(1);
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
@@ -115,13 +185,13 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled }) {
               </div>
               <button type="button" onClick={()=>{ onAdd(item, qty); onClose(); }}
                 style={{ flex:1, background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-                <span>Add to Order</span>
+                <span>{t.addToOrder}</span>
                 <span style={{ fontWeight:700 }}>{fmt(item.price * qty)}</span>
               </button>
             </div>
           ) : (
             <div style={{ paddingTop:4, fontSize:13, color:"#a89880", textAlign:"center", lineHeight:1.5 }}>
-              Ask your waiter to order · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
+              {t.askWaiterOrder} · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
             </div>
           )}
         </div>
@@ -130,7 +200,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled }) {
   );
 }
 
-function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, onPlaceOrder }) {
+function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, onPlaceOrder, t }) {
   const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const [placed, setPlaced] = useState(false);
   const [placing, setPlacing] = useState(false);
@@ -144,7 +214,7 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
     if (result.ok) {
       setPlaced(true);
     } else {
-      setOrderError(result.message || "Something went wrong");
+      setOrderError(result.message || t.orderErrorGeneric);
     }
   };
 
@@ -152,13 +222,11 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
     <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(26,20,14,0.6)" }}>
       <div className="fade-up" style={{ background:"#fff", borderRadius:24, padding:"40px 32px", textAlign:"center", margin:24, maxWidth:320 }}>
         <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{paymentEnabled ? "Order Placed!" : "Sent to the team!"}</div>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{paymentEnabled ? t.orderPlacedTitle : t.orderSentTitle}</div>
         <div style={{ fontSize:14, color:"#8a7d6b", marginBottom:24, lineHeight:1.5 }}>
-          {paymentEnabled
-            ? "Your order has been sent to the kitchen. You can complete payment on the next step when available."
-            : "Your order has been sent to the kitchen. A waiter will come to your table shortly."}
+          {t.successBody}
         </div>
-        <div style={{ fontSize:13, color:"#a89880" }}>Table {tableNumber}</div>
+        <div style={{ fontSize:13, color:"#a89880", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
       </div>
     </div>
   );
@@ -168,10 +236,10 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
       <div style={{ position:"absolute", inset:0, background:"rgba(26,20,14,0.5)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"85vh", display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"20px 20px 0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#1a140e" }}>Your Order</div>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#1a140e" }}>{t.yourOrder}</div>
           <button type="button" onClick={onClose} style={{ background:"#f5f0e8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#8a7d6b" }}>✕</button>
         </div>
-        <div style={{ fontSize:12, color:"#a89880", padding:"4px 20px 16px" }}>Table {tableNumber}</div>
+        <div style={{ fontSize:12, color:"#a89880", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
         <div style={{ overflowY:"auto", flex:1, padding:"0 20px" }}>
           {cart.map(item=>(
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f5f0e8" }}>
@@ -198,17 +266,17 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
         </div>
         <div style={{ padding:"16px 20px 32px", borderTop:"1px solid #f5f0e8" }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-            <span style={{ fontSize:14, color:"#8a7d6b" }}>Total</span>
+            <span style={{ fontSize:14, color:"#8a7d6b" }}>{t.total}</span>
             <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#1a140e" }}>{fmt(total)}</span>
           </div>
           {orderError && (
             <div style={{ fontSize:12, color:"#c62828", marginBottom:12, textAlign:"center", lineHeight:1.4 }}>{orderError}</div>
           )}
           <button type="button" disabled={placing} onClick={handlePlace} style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:placing?"wait":"pointer", fontFamily:"DM Sans", opacity:placing?0.85:1 }}>
-            {placing ? "Sending…" : (paymentEnabled ? "Place Order & Pay →" : "Send Order to Waiter →")}
+            {placing ? t.sending : (paymentEnabled ? t.placeOrderBtn : t.sendWaiterBtn)}
           </button>
           <div style={{ textAlign:"center", fontSize:12, color:"#c4b8a8", marginTop:10 }}>
-            {paymentEnabled ? "Secure payment from your phone" : "A waiter will come to your table"}
+            {paymentEnabled ? t.paymentSubtitle : t.waiterSubtitle}
           </div>
         </div>
       </div>
@@ -216,8 +284,13 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
   );
 }
 
+const LANG_CODES = ["AZ", "RU", "EN"];
+
 export default function CustomerMenu() {
   const { restaurantId, tableNum } = useMemo(() => readUrlContext(), []);
+
+  const [lang, setLang] = useState("EN");
+  const t = useMemo(() => stringsFor(lang), [lang]);
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
@@ -315,7 +388,7 @@ export default function CustomerMenu() {
       <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#faf8f4", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
         <GS />
         <div className="menu-spinner" aria-hidden />
-        <div style={{ marginTop:16, fontSize:13, color:"#a89880", fontFamily:"DM Sans" }}>Loading…</div>
+        <div style={{ marginTop:16, fontSize:13, color:"#a89880", fontFamily:"DM Sans" }}>{t.loading}</div>
       </div>
     );
   }
@@ -324,8 +397,8 @@ export default function CustomerMenu() {
     return (
       <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#faf8f4", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
         <GS />
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{"Couldn't load menu"}</div>
-        <div style={{ fontSize:14, color:"#8a7d6b", lineHeight:1.5 }}>{loadError || "Restaurant not found"}</div>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{t.loadFailTitle}</div>
+        <div style={{ fontSize:14, color:"#8a7d6b", lineHeight:1.5 }}>{loadError || t.restaurantNotFound}</div>
       </div>
     );
   }
@@ -339,9 +412,38 @@ export default function CustomerMenu() {
           <div>
             <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#1a140e", lineHeight:1.1 }}>{restaurant.name}</div>
             {tagline ? <div style={{ fontSize:12, color:"#a89880", marginTop:3 }}>{tagline}</div> : null}
+            {orderingOn ? (
+              <div style={{ fontSize:11, color:"#a89880", marginTop:4, fontFamily:"DM Mono, monospace", letterSpacing:"0.02em" }}>
+                {t.tableLabel} {tableNum}
+              </div>
+            ) : null}
           </div>
-          <div style={{ background:"#f5f0e8", borderRadius:20, padding:"6px 14px", fontSize:12, fontWeight:600, color:"#8a7d6b", marginTop:4 }}>
-            Table {tableNum}
+          <div
+            role="group"
+            aria-label="Language"
+            style={{ display:"flex", marginTop:4, borderRadius:20, border:"1px solid #e4dcd0", overflow:"hidden", flexShrink:0 }}
+          >
+            {LANG_CODES.map((code, i) => (
+              <button
+                key={code}
+                type="button"
+                onClick={() => setLang(code)}
+                style={{
+                  padding:"6px 12px",
+                  fontSize:11,
+                  fontWeight:600,
+                  fontFamily:"DM Mono, monospace",
+                  border:"none",
+                  borderLeft: i ? "1px solid #e4dcd0" : "none",
+                  cursor:"pointer",
+                  background: lang === code ? "#1a140e" : "transparent",
+                  color: lang === code ? "#faf8f4" : "#8a7d6b",
+                  lineHeight:1.2,
+                }}
+              >
+                {code}
+              </button>
+            ))}
           </div>
         </div>
         <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:16, scrollbarWidth:"none" }}>
@@ -405,7 +507,7 @@ export default function CustomerMenu() {
             style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontFamily:"DM Sans", boxShadow:"0 8px 32px rgba(26,20,14,0.25)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
               <div style={{ background:"#c9a96e", borderRadius:"50%", width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#1a140e" }}>{cartCount}</div>
-              <span style={{ fontSize:14, fontWeight:600 }}>View Order</span>
+              <span style={{ fontSize:14, fontWeight:600 }}>{t.viewOrder}</span>
             </div>
             <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#c9a96e" }}>{fmt(cartTotal)}</span>
           </button>
@@ -416,7 +518,7 @@ export default function CustomerMenu() {
         <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:90, display:"flex", justifyContent:"center", pointerEvents:"none" }}>
           <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(250,248,244,0.98) 60%, transparent)" }}>
             <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#a89880", letterSpacing:"0.02em", lineHeight:1.5 }}>
-              Scan to view our menu · Ask your waiter to order
+              {t.scanPrompt}
             </div>
           </div>
         </div>
@@ -429,6 +531,7 @@ export default function CustomerMenu() {
           orderingEnabled={orderingOn}
           onClose={()=>setSelectedItem(null)}
           onAdd={addToCart}
+          t={t}
         />
       )}
       {orderingOn && showCart && (
@@ -439,6 +542,7 @@ export default function CustomerMenu() {
           onQtyChange={changeQty}
           paymentEnabled={paymentOn}
           onPlaceOrder={placeOrder}
+          t={t}
         />
       )}
     </div>
