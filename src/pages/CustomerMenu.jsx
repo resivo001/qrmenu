@@ -32,7 +32,7 @@ const GS = () => (
   `}</style>
 );
 
-const fmt = (n) => `$${Number(n).toFixed(2)}`;
+const fmt = (n) => `₼${Number(n).toFixed(2)}`;
 
 function normalizeFeatures(row) {
   const f = row?.features;
@@ -82,9 +82,11 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled }) {
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
       <div style={{ position:"absolute", inset:0, background:"rgba(26,20,14,0.5)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"88vh", overflowY:"auto", paddingBottom:32 }}>
-        <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative" }}>
+        <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#f5f0e8" }}>
           {item.img ? (
-            <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+            <div style={{ position:"absolute", inset:0 }}>
+              <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+            </div>
           ) : (
             <div style={{ width:"100%", height:"100%", background:"#f5f0e8" }} />
           )}
@@ -174,9 +176,11 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
           {cart.map(item=>(
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f5f0e8" }}>
               {item.img ? (
-                <img src={item.img} alt="" style={{ width:52, height:52, borderRadius:12, objectFit:"cover", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f5f0e8" }}>
+                  <img src={item.img} alt="" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+                </div>
               ) : (
-                <div style={{ width:52, height:52, borderRadius:12, background:"#f5f0e8", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:10, background:"#f5f0e8", flexShrink:0 }} />
               )}
               <div style={{ flex:1 }}>
                 <div style={{ fontSize:14, fontWeight:600, color:"#1a140e", marginBottom:4 }}>{item.name}</div>
@@ -382,11 +386,11 @@ export default function CustomerMenu() {
                     ) : <span style={{ width:34 }} aria-hidden />}
                   </div>
                 </div>
-                <div style={{ width:120, flexShrink:0 }}>
+                <div style={{ width:120, height:120, flexShrink:0, overflow:"hidden" }}>
                   {item.img ? (
-                    <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
+                    <img src={item.img} alt={item.name} style={{ width:120, height:120, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                   ) : (
-                    <div style={{ width:"100%", minHeight:120, height:"100%", background:"#f5f0e8" }} />
+                    <div style={{ width:120, height:120, background:"#f5f0e8" }} />
                   )}
                 </div>
               </div>

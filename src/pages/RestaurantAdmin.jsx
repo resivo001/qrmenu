@@ -181,6 +181,7 @@ function Field({ label, children, style }) {
 function ItemModal({ item, cats, onSave, onClose, showToast }) {
   const [form, setForm] = useState(item || { name:"", desc:"", price:"", cat:cats[0]?.id, img:"", available:true });
   const [imageUploading, setImageUploading] = useState(false);
+  const [itemSaving, setItemSaving] = useState(false);
   const fileInputRef = useRef(null);
   const set = (k,v) => setForm(p=>({...p,[k]:v}));
   const valid = form.name.trim() && form.price;
@@ -201,49 +202,74 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     if (url) set("img", url);
     setImageUploading(false);
   };
+  const handleSave = async () => {
+    if (!valid || imageUploading || itemSaving) return;
+    setItemSaving(true);
+    try {
+      await onSave(form);
+    } finally {
+      setItemSaving(false);
+    }
+  };
   return (
     <div style={S.overlay} onClick={onClose}>
-      <div className="fade-up" style={S.modal} onClick={e=>e.stopPropagation()}>
-        <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-          <span style={S.modalTitle}>{item?"Edit Item":"New Item"}</span>
-          <button type="button" className="btn-close" style={S.closeBtn} onClick={onClose} aria-label="Close">✕</button>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14 }}>
-          <Field label="Item Name" style={{ gridColumn:"1/-1" }}>
-            <input style={S.inp} value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Truffle Risotto" />
-          </Field>
-          <Field label="Price (₼)">
-            <input style={S.inp} type="number" value={form.price} onChange={e=>set("price",e.target.value)} placeholder="0.00" />
-          </Field>
-          <Field label="Category">
-            <select style={S.inp} value={form.cat} onChange={e=>set("cat",e.target.value)}>
-              {cats.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-            </select>
-          </Field>
-          <Field label="Image" style={{ gridColumn:"1/-1" }}>
-            {form.img ? (
-              <img src={form.img} alt="" style={{ width:"100%", height:160, objectFit:"cover", borderRadius:10, marginBottom:10 }} onError={(ev)=>{ ev.target.style.display="none"; }} />
-            ) : null}
-            <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={(ev)=>void onImageFile(ev)} />
-            <button type="button" className="btn-ghost" style={S.ghostBtn} disabled={imageUploading} onClick={()=>fileInputRef.current?.click()}>
-              {imageUploading ? "Uploading..." : "Choose image"}
-            </button>
-          </Field>
-          <Field label="Description" style={{ gridColumn:"1/-1" }}>
-            <textarea style={{ ...S.inp, minHeight:68, resize:"vertical" }} value={form.desc} onChange={e=>set("desc",e.target.value)} placeholder="Describe the dish..." />
-          </Field>
-        </div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", margin:"16px 0 20px" }}>
-          <span style={{ fontSize:13, color:"#555", fontFamily:"Syne" }}>Available on menu</span>
-          <div onClick={()=>set("available",!form.available)} style={{ width:44, height:24, borderRadius:12, background:form.available?"#1a1714":"#ddd", cursor:"pointer", transition:"background 0.2s", position:"relative" }}>
-            <div style={{ position:"absolute", top:2, left:form.available?22:2, width:20, height:20, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.2)", transition:"left 0.2s" }} />
+      <div
+        className="fade-up"
+        style={{ ...S.modal, maxHeight:"90vh", overflowY:"hidden", display:"flex", flexDirection:"column", paddingBottom:0 }}
+        onClick={e=>e.stopPropagation()}
+      >
+        <div style={{ flexShrink:0, paddingBottom:20 }}>
+          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+            <span style={S.modalTitle}>{item?"Edit Item":"New Item"}</span>
+            <button type="button" className="btn-close" style={S.closeBtn} onClick={onClose} aria-label="Close">✕</button>
           </div>
         </div>
-        <div style={{ display:"flex", gap:10, justifyContent:"flex-end", flexWrap:"wrap" }}>
-          <button type="button" className="btn-ghost" style={S.ghostBtn} onClick={onClose}>Cancel</button>
-          <button type="button" className="btn-accent" style={{ ...S.accentBtn, opacity:valid&&!imageUploading?1:0.4, cursor:valid&&!imageUploading?"pointer":"not-allowed" }} disabled={!valid||imageUploading} onClick={()=>valid&&!imageUploading&&onSave(form)}>
-            {item?"Save Changes":"Add Item"}
-          </button>
+        <div style={{ flex:1, minHeight:0, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
+          <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, paddingBottom:8 }}>
+            <Field label="Item Name" style={{ gridColumn:"1/-1" }}>
+              <input style={S.inp} value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Truffle Risotto" />
+            </Field>
+            <Field label="Price (₼)">
+              <input style={S.inp} type="number" value={form.price} onChange={e=>set("price",e.target.value)} placeholder="0.00" />
+            </Field>
+            <Field label="Category">
+              <select style={S.inp} value={form.cat} onChange={e=>set("cat",e.target.value)}>
+                {cats.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+              </select>
+            </Field>
+            <Field label="Image" style={{ gridColumn:"1/-1" }}>
+              <div style={{ width:"100%", height:180, borderRadius:10, marginBottom:10, background:"#faf7f2", overflow:"hidden" }}>
+                {form.img ? (
+                  <img src={form.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(ev)=>{ ev.target.style.display="none"; }} />
+                ) : null}
+              </div>
+              <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={(ev)=>void onImageFile(ev)} />
+              <button type="button" className="btn-ghost" style={S.ghostBtn} disabled={imageUploading} onClick={()=>fileInputRef.current?.click()}>
+                {imageUploading ? "Uploading..." : "Choose image"}
+              </button>
+            </Field>
+            <Field label="Description" style={{ gridColumn:"1/-1" }}>
+              <textarea style={{ ...S.inp, minHeight:68, resize:"vertical" }} value={form.desc} onChange={e=>set("desc",e.target.value)} placeholder="Describe the dish..." />
+            </Field>
+          </div>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", marginBottom:8 }}>
+            <span style={{ fontSize:13, color:"#555", fontFamily:"Syne" }}>Available on menu</span>
+            <div onClick={()=>set("available",!form.available)} style={{ width:44, height:24, borderRadius:12, background:form.available?"#1a1714":"#ddd", cursor:"pointer", transition:"background 0.2s", position:"relative" }}>
+              <div style={{ position:"absolute", top:2, left:form.available?22:2, width:20, height:20, borderRadius:"50%", background:"#fff", boxShadow:"0 1px 4px rgba(0,0,0,0.2)", transition:"left 0.2s" }} />
+            </div>
+          </div>
+          <div style={{ position:"sticky", bottom:0, background:"#fff", padding:"16px 0 4px", display:"flex", gap:10, justifyContent:"flex-end", flexWrap:"wrap" }}>
+            <button type="button" className="btn-ghost" style={S.ghostBtn} onClick={onClose}>Cancel</button>
+            <button
+              type="button"
+              className="btn-accent"
+              style={{ ...S.accentBtn, opacity:valid&&!imageUploading&&!itemSaving?1:0.4, cursor:valid&&!imageUploading&&!itemSaving?"pointer":"not-allowed" }}
+              disabled={!valid||imageUploading||itemSaving}
+              onClick={()=>void handleSave()}
+            >
+              {itemSaving ? "Saving..." : item ? "Save Changes" : "Add Item"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -563,7 +589,7 @@ export default function RestaurantAdmin() {
   };
 
   const saveItem = async (form) => {
-    if (!restaurant?.id) return;
+    if (!restaurant?.id) return undefined;
     const row = {
       restaurant_id: restaurant.id,
       category_id: form.cat,
@@ -577,7 +603,7 @@ export default function RestaurantAdmin() {
       const { error } = await supabase.from("menu_items").update(row).eq("id", form.id).eq("restaurant_id", restaurant.id);
       if (error) {
         showToast(error.message, "warn");
-        return;
+        return false;
       }
       setItems((p) =>
         p.map((i) =>
@@ -591,12 +617,13 @@ export default function RestaurantAdmin() {
       const { data, error } = await supabase.from("menu_items").insert(row).select().single();
       if (error) {
         showToast(error.message, "warn");
-        return;
+        return false;
       }
       setItems((p) => [...p, mapItemFromDb(data)]);
       showToast("Item added ✓");
     }
     setItemModal(null);
+    return true;
   };
 
   const deleteItem = async (id) => {
@@ -703,7 +730,7 @@ export default function RestaurantAdmin() {
         tables_count: tablesNum,
       };
       if (newPassword) payload.password = newPassword;
-      const { error } = await supabase.from("restaurants").update(payload).eq("id", rid);
+      const { error } = await supabase.from("restaurants").update(payload).eq("id", String(rid));
       if (error) {
         showToast(error.message, "warn");
         return;
@@ -939,7 +966,13 @@ export default function RestaurantAdmin() {
           <div className="fade-up" style={{ maxWidth:520 }}>
             <h1 style={S.pageTitle}>Settings</h1>
             <p style={S.pageSub}>Restaurant configuration</p>
-            <div style={{ marginTop:24, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24, display:"flex", flexDirection:"column", gap:16 }}>
+            <form
+              style={{ marginTop:24, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24, display:"flex", flexDirection:"column", gap:16 }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                void saveSettings();
+              }}
+            >
               {[
                 { label:"Restaurant Name", key:"name" },
                 { label:"Location",        key:"location" },
@@ -978,17 +1011,14 @@ export default function RestaurantAdmin() {
                 />
               </div>
               <button
-                type="button"
+                type="submit"
                 className="btn-accent"
                 disabled={settingsSaving}
                 style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4, opacity: settingsSaving ? 0.85 : 1, cursor: settingsSaving ? "wait" : "pointer" }}
-                onClick={() => {
-                  void saveSettings();
-                }}
               >
                 {settingsSaving ? "Saving..." : "Save Settings"}
               </button>
-            </div>
+            </form>
             <div style={{ marginTop:16, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24 }}>
               <div style={{ fontSize:11, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em", marginBottom:16 }}>FEATURES</div>
               <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", gap:16 }}>
