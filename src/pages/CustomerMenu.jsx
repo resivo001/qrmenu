@@ -527,12 +527,12 @@ export default function CustomerMenu() {
       </header>
 
       <div style={{ flex:1, padding:`16px 16px ${bottomPad}px` }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:12 }}>
+        <div style={{ display:"flex", flexDirection:"column", gap:12, minWidth:0, width:"100%" }}>
           {filtered.map((item, i) => (
-            <div key={item.id} className="item-card fade-up" style={{ animationDelay:`${i*0.05}s`, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(26,20,14,0.06)", cursor:"pointer" }}
+            <div key={item.id} className="item-card fade-up" style={{ animationDelay:`${i*0.05}s`, width:"100%", maxWidth:"100%", minWidth:0, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(26,20,14,0.06)", cursor:"pointer" }}
               onClick={()=>setSelectedItem(item)}>
-              <div style={{ display:"flex" }}>
-                <div style={{ flex:1, padding:"16px 14px 16px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+              <div style={{ display:"flex", width:"100%", minWidth:0, overflow:"hidden" }}>
+                <div style={{ flex:1, minWidth:0, padding:"16px 14px 16px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
                     {item.badge && (
                       <div style={{ display:"inline-block", fontSize:10, fontWeight:600, color:"#8a7d6b", background:"#f5f0e8", borderRadius:20, padding:"2px 8px", marginBottom:6 }}>
@@ -554,11 +554,11 @@ export default function CustomerMenu() {
                     ) : <span style={{ width:34 }} aria-hidden />}
                   </div>
                 </div>
-                <div style={{ width:120, height:120, flexShrink:0, overflow:"hidden" }}>
+                <div style={{ flex:"0 0 120px", width:120, height:120, flexShrink:0, overflow:"hidden" }}>
                   {item.img ? (
                     <img src={item.img} alt={item.name} style={{ width:120, height:120, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                   ) : (
-                    <div style={{ width:120, height:120, background:"#f5f0e8" }} />
+                    <div style={{ width:120, height:120, background:"#f5f0e8", flexShrink:0 }} />
                   )}
                 </div>
               </div>
