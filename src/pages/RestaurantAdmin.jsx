@@ -449,6 +449,13 @@ export default function RestaurantAdmin() {
   const [catModal, setCatModal] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
   const [toast, setToast] = useState(null);
+  const [settingsForm, setSettingsForm] = useState({
+    name: "",
+    location: "",
+    contact_email: "",
+    menu_url: "",
+    new_password: "",
+  });
 
   const showToast = (msg, type = "ok") => {
     setToast({ msg, type });
@@ -493,6 +500,13 @@ export default function RestaurantAdmin() {
     if (!data) return false;
     const nf = normalizeFeatures(data);
     setRestaurant(data);
+    setSettingsForm({
+      name: data.name ?? "",
+      location: data.location ?? "",
+      contact_email: data.contact_email ?? "",
+      menu_url: data.menu_url ?? "",
+      new_password: "",
+    });
     setFeatures(nf);
     setTab(nf.ordering ? "orders" : "menu");
     setAuthed(true);
@@ -515,6 +529,7 @@ export default function RestaurantAdmin() {
     setItemModal(null);
     setCatModal(null);
     setConfirmDel(null);
+    setSettingsForm({ name: "", location: "", contact_email: "", menu_url: "", new_password: "" });
   };
 
   const saveItem = async (form) => {
@@ -639,6 +654,37 @@ export default function RestaurantAdmin() {
     const { error } = await supabase.from("restaurants").update({ features: next }).eq("id", restaurant.id);
     if (error) showToast(error.message, "warn");
     else setRestaurant((r) => (r ? { ...r, features: next } : r));
+  };
+
+  const saveSettings = async () => {
+    if (!restaurant?.id) return;
+    const newPassword = settingsForm.new_password.trim();
+    const payload = {
+      name: settingsForm.name.trim(),
+      location: settingsForm.location.trim(),
+      contact_email: settingsForm.contact_email.trim(),
+      menu_url: settingsForm.menu_url.trim(),
+    };
+    if (newPassword) payload.password = newPassword;
+    const { error } = await supabase.from("restaurants").update(payload).eq("id", restaurant.id);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    setRestaurant((r) =>
+      r
+        ? {
+            ...r,
+            name: payload.name,
+            location: payload.location,
+            contact_email: payload.contact_email,
+            menu_url: payload.menu_url,
+            ...(newPassword ? { password: newPassword } : {}),
+          }
+        : r
+    );
+    setSettingsForm((f) => ({ ...f, new_password: "" }));
+    showToast("Settings saved ✓");
   };
 
   const catName = (id) => cats.find((c) => c.id === id)?.name || "—";
@@ -853,21 +899,33 @@ export default function RestaurantAdmin() {
             <p style={S.pageSub}>Restaurant configuration</p>
             <div style={{ marginTop:24, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24, display:"flex", flexDirection:"column", gap:16 }}>
               {[
-                { label:"Restaurant Name", val:restaurant?.name ?? "" },
-                { label:"Location",        val:restaurant?.location ?? "" },
-                { label:"Contact Email",   val:restaurant?.contact_email ?? "" },
-                { label:"Menu URL",        val:restaurant?.menu_url ?? "" },
-              ].map(({label,val})=>(
+                { label:"Restaurant Name", key:"name" },
+                { label:"Location",        key:"location" },
+                { label:"Contact Email",   key:"contact_email" },
+                { label:"Menu URL",        key:"menu_url" },
+              ].map(({ label, key }) => (
                 <div key={label} style={{ display:"flex", flexDirection:"column", gap:6 }}>
                   <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>{label.toUpperCase()}</label>
-                  <input defaultValue={val} style={S.inp} />
+                  <input
+                    style={S.inp}
+                    value={settingsForm[key]}
+                    onChange={(e) => setSettingsForm((p) => ({ ...p, [key]: e.target.value }))}
+                  />
                 </div>
               ))}
               <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                 <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NEW PASSWORD</label>
-                <input type="password" placeholder="Leave blank to keep current" style={S.inp} />
+                <input
+                  type="password"
+                  placeholder="Leave blank to keep current"
+                  style={S.inp}
+                  value={settingsForm.new_password}
+                  onChange={(e) => setSettingsForm((p) => ({ ...p, new_password: e.target.value }))}
+                />
               </div>
-              <button type="button" className="btn-accent" style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4 }}>Save Settings</button>
+              <button type="button" className="btn-accent" style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4 }} onClick={() => void saveSettings()}>
+                Save Settings
+              </button>
             </div>
             <div style={{ marginTop:16, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24 }}>
               <div style={{ fontSize:11, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em", marginBottom:16 }}>FEATURES</div>
