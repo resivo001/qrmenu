@@ -2,7 +2,8 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import { supabase } from "../supabase";
 
-const MENU_QR_BASE = "https://qrmenu-virid.vercel.app/menu";
+// ✅ Dynamic base URL — works on any domain, no hardcoding
+const MENU_QR_BASE = `${window.location.origin}/menu`;
 
 const GS = () => (
   <style>{`
@@ -36,6 +37,8 @@ const GS = () => (
     .chip-avail:hover { filter: brightness(0.97); }
     .admin-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .orders-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .qr-card { transition: box-shadow 0.2s ease, transform 0.15s ease; }
+    .qr-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important; transform: translateY(-1px); }
     @media (max-width: 1100px) {
       .orders-board { grid-template-columns: repeat(2, 1fr); }
     }
@@ -369,80 +372,230 @@ function OrderCard({ order, onStatusChange }) {
   );
 }
 
-function QRCard({ url, headline, downloadFilename, qrTitle }) {
+// ✅ Improved QR card: branded, copy link, download PNG, shows URL
+function QRCard({ url, headline, subline, downloadFilename, qrTitle, restaurantName }) {
   const canvasRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+
   const downloadPng = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+
+    // Create a branded canvas with label below the QR
+    const padding = 20;
+    const qrSize = 200;
+    const labelHeight = subline ? 64 : 44;
+    const totalH = qrSize + labelHeight + padding * 2;
+    const totalW = qrSize + padding * 2;
+
+    const offscreen = document.createElement("canvas");
+    offscreen.width = totalW;
+    offscreen.height = totalH;
+    const ctx = offscreen.getContext("2d");
+
+    // Background
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, totalW, totalH);
+
+    // Draw QR from the rendered canvas
+    ctx.drawImage(canvas, padding, padding, qrSize, qrSize);
+
+    // Restaurant name
+    ctx.fillStyle = "#1a1714";
+    ctx.font = "bold 13px 'Arial', sans-serif";
+    ctx.textAlign = "center";
+    ctx.fillText(restaurantName || headline, totalW / 2, qrSize + padding + 20);
+
+    // Table label
+    if (subline) {
+      ctx.fillStyle = "#8a7d6b";
+      ctx.font = "11px 'Arial', sans-serif";
+      ctx.fillText(subline, totalW / 2, qrSize + padding + 38);
+    }
+
     const a = document.createElement("a");
-    a.href = canvas.toDataURL("image/png");
+    a.href = offscreen.toDataURL("image/png");
     a.download = downloadFilename;
     a.click();
   };
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback: select text
+    }
+  };
+
   return (
-    <div style={{ background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:"20px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:10, boxShadow:"0 1px 8px rgba(0,0,0,0.03)" }}>
-      <div style={{ padding:10, border:"1.5px solid #ede7da", borderRadius:10, background:"#fff", lineHeight:0 }}>
+    <div className="qr-card" style={{ background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:"20px 16px", display:"flex", flexDirection:"column", alignItems:"center", gap:12, boxShadow:"0 1px 8px rgba(0,0,0,0.03)" }}>
+      {/* QR Code */}
+      <div style={{ padding:12, border:"1.5px solid #ede7da", borderRadius:12, background:"#fff", lineHeight:0 }}>
         <QRCodeCanvas
           ref={canvasRef}
           value={url}
-          size={112}
+          size={160}
           level="M"
-          marginSize={2}
+          marginSize={1}
           bgColor="#ffffff"
           fgColor="#1a1714"
           title={qrTitle}
         />
       </div>
-      <div style={{ fontWeight:800, fontSize:15, color:"#1a1714" }}>{headline}</div>
-      <div style={{ fontSize:9, color:"#c4b8a8", fontFamily:"DM Mono", textAlign:"center", wordBreak:"break-all", maxWidth:"100%", lineHeight:1.35 }}>{url}</div>
-      <button type="button" className="btn-qr-download" onClick={downloadPng} style={{ fontSize:11, color:"#8a7d6b", border:"1.5px solid #e4dcd0", background:"#fff", borderRadius:8, padding:"8px 16px", cursor:"pointer", fontFamily:"Syne", fontWeight:500, width:"100%", minHeight:40 }}>
-        ↓ Download PNG
-      </button>
+
+      {/* Label */}
+      <div style={{ textAlign:"center" }}>
+        <div style={{ fontWeight:800, fontSize:15, color:"#1a1714", letterSpacing:"-0.01em" }}>{headline}</div>
+        {subline && <div style={{ fontSize:11, color:"#a89880", fontFamily:"DM Mono", marginTop:2 }}>{subline}</div>}
+      </div>
+
+      {/* URL display */}
+      <div style={{ fontSize:9, color:"#c4b8a8", fontFamily:"DM Mono", textAlign:"center", wordBreak:"break-all", maxWidth:"100%", lineHeight:1.4, padding:"6px 10px", background:"#faf7f2", borderRadius:8, width:"100%" }}>
+        {url}
+      </div>
+
+      {/* Actions */}
+      <div style={{ display:"flex", gap:6, width:"100%" }}>
+        <button
+          type="button"
+          onClick={copyLink}
+          style={{ flex:1, fontSize:11, color: copied ? "#2e7d32" : "#8a7d6b", border:`1.5px solid ${copied ? "#c6e6c6" : "#e4dcd0"}`, background: copied ? "#eaf5ea" : "#fff", borderRadius:8, padding:"8px 6px", cursor:"pointer", fontFamily:"Syne", fontWeight:600, minHeight:36, transition:"all 0.2s" }}>
+          {copied ? "✓ Copied" : "Copy Link"}
+        </button>
+        <button
+          type="button"
+          className="btn-qr-download"
+          onClick={downloadPng}
+          style={{ flex:1, fontSize:11, color:"#8a7d6b", border:"1.5px solid #e4dcd0", background:"#fff", borderRadius:8, padding:"8px 6px", cursor:"pointer", fontFamily:"Syne", fontWeight:600, minHeight:36 }}>
+          ↓ PNG
+        </button>
+      </div>
     </div>
   );
 }
 
-function QRSection({ restaurantId, orderingEnabled, tablesCount }) {
+// ✅ Full QR section with Download All button
+function QRSection({ restaurantId, restaurantName, orderingEnabled, tablesCount }) {
+  const [downloadingAll, setDownloadingAll] = useState(false);
   const rid = encodeURIComponent(restaurantId);
   const menuOnlyUrl = `${MENU_QR_BASE}?restaurant=${rid}`;
-  if (!orderingEnabled) {
-    return (
-      <div className="fade-up">
-        <div style={{ marginBottom:24 }}>
-          <h1 style={S.pageTitle}>QR Codes</h1>
-          <p style={S.pageSub}>Guests scan to open your menu</p>
-        </div>
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(168px,1fr))", gap:14 }}>
-          <QRCard
-            url={menuOnlyUrl}
-            headline="Menu QR Code"
-            downloadFilename="menu-qr.png"
-            qrTitle="Menu QR code"
-          />
-        </div>
-        <p style={{ fontSize:11, color:"#a89880", fontFamily:"DM Mono", marginTop:14, maxWidth:480, lineHeight:1.45 }}>
-          Enable Online Ordering in Settings to generate per-table QR codes
-        </p>
-      </div>
-    );
-  }
+
+  // Build list of all QR entries
+  const qrList = orderingEnabled
+    ? Array.from({ length: tablesCount }, (_, i) => ({
+        key: `table-${i + 1}`,
+        url: `${MENU_QR_BASE}?restaurant=${rid}&table=${i + 1}`,
+        headline: `Table ${i + 1}`,
+        subline: restaurantName,
+        downloadFilename: `table-${i + 1}-qr.png`,
+        qrTitle: `Menu QR for table ${i + 1}`,
+      }))
+    : [{
+        key: "menu-only",
+        url: menuOnlyUrl,
+        headline: "Menu QR Code",
+        subline: restaurantName,
+        downloadFilename: "menu-qr.png",
+        qrTitle: "Menu QR code",
+      }];
+
+  // Download all as individual PNGs (triggers one by one with delay)
+  const downloadAll = async () => {
+    setDownloadingAll(true);
+    for (let i = 0; i < qrList.length; i++) {
+      const { url, downloadFilename, headline } = qrList[i];
+
+      // Draw QR to offscreen canvas
+      const { toCanvas } = await import("qrcode");
+      const offscreen = document.createElement("canvas");
+      const padding = 20;
+      const qrSize = 200;
+      offscreen.width = qrSize + padding * 2;
+      offscreen.height = qrSize + 64 + padding * 2;
+      const ctx = offscreen.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, offscreen.width, offscreen.height);
+
+      const qrCanvas = document.createElement("canvas");
+      await toCanvas(qrCanvas, url, { width: qrSize, margin: 1, color: { dark: "#1a1714", light: "#ffffff" } });
+      ctx.drawImage(qrCanvas, padding, padding);
+
+      ctx.fillStyle = "#1a1714";
+      ctx.font = "bold 13px Arial, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(restaurantName || headline, offscreen.width / 2, qrSize + padding + 20);
+
+      ctx.fillStyle = "#8a7d6b";
+      ctx.font = "11px Arial, sans-serif";
+      ctx.fillText(headline, offscreen.width / 2, qrSize + padding + 38);
+
+      const a = document.createElement("a");
+      a.href = offscreen.toDataURL("image/png");
+      a.download = downloadFilename;
+      a.click();
+
+      // Small delay between downloads
+      if (i < qrList.length - 1) {
+        await new Promise((r) => setTimeout(r, 300));
+      }
+    }
+    setDownloadingAll(false);
+  };
+
   return (
     <div className="fade-up">
-      <div style={{ marginBottom:24 }}>
-        <h1 style={S.pageTitle}>QR Codes</h1>
-        <p style={S.pageSub}>One per table — guests scan to view menu & order</p>
+      {/* Header */}
+      <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
+        <div>
+          <h1 style={S.pageTitle}>QR Codes</h1>
+          <p style={S.pageSub}>
+            {orderingEnabled
+              ? `${tablesCount} table${tablesCount !== 1 ? "s" : ""} · guests scan to view menu & order`
+              : "Guests scan to open your menu"}
+          </p>
+        </div>
+        {qrList.length > 1 && (
+          <button
+            type="button"
+            className="btn-accent"
+            disabled={downloadingAll}
+            onClick={() => void downloadAll()}
+            style={{ ...S.accentBtn, opacity: downloadingAll ? 0.7 : 1, cursor: downloadingAll ? "wait" : "pointer" }}>
+            {downloadingAll ? `Downloading… (${qrList.length})` : `↓ Download All (${qrList.length})`}
+          </button>
+        )}
       </div>
-      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(168px,1fr))", gap:14 }}>
-        {Array.from({ length: tablesCount }, (_, i) => i + 1).map((t) => (
+
+      {/* Info banner if no tables set */}
+      {orderingEnabled && tablesCount === 0 && (
+        <div style={{ background:"#fef6e8", border:"1px solid #f5d89e", borderRadius:12, padding:"14px 18px", fontSize:13, color:"#b45309", fontFamily:"DM Mono", marginBottom:20, lineHeight:1.5 }}>
+          ⚠️ Set the number of tables in Settings to generate per-table QR codes
+        </div>
+      )}
+
+      {/* QR Grid */}
+      <div style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(200px,1fr))", gap:16 }}>
+        {qrList.map((q) => (
           <QRCard
-            key={t}
-            url={`${MENU_QR_BASE}?restaurant=${rid}&table=${t}`}
-            headline={`Table ${t}`}
-            downloadFilename={`table-${t}-qr.png`}
-            qrTitle={`Menu QR for table ${t}`}
+            key={q.key}
+            url={q.url}
+            headline={q.headline}
+            subline={q.subline}
+            downloadFilename={q.downloadFilename}
+            qrTitle={q.qrTitle}
+            restaurantName={restaurantName}
           />
         ))}
       </div>
+
+      {/* Footer note for menu-only mode */}
+      {!orderingEnabled && (
+        <p style={{ fontSize:11, color:"#a89880", fontFamily:"DM Mono", marginTop:16, maxWidth:480, lineHeight:1.5 }}>
+          Enable Online Ordering in Settings to generate per-table QR codes with ordering support.
+        </p>
+      )}
     </div>
   );
 }
@@ -601,24 +754,12 @@ export default function RestaurantAdmin() {
     };
     if (form.id) {
       const { error } = await supabase.from("menu_items").update(row).eq("id", form.id).eq("restaurant_id", restaurant.id);
-      if (error) {
-        showToast(error.message, "warn");
-        return false;
-      }
-      setItems((p) =>
-        p.map((i) =>
-          i.id === String(form.id)
-            ? { ...i, cat: String(form.cat), name: row.name, desc: row.description, price: row.price, img: row.image_url, available: row.available }
-            : i
-        )
-      );
+      if (error) { showToast(error.message, "warn"); return false; }
+      setItems((p) => p.map((i) => i.id === String(form.id) ? { ...i, cat: String(form.cat), name: row.name, desc: row.description, price: row.price, img: row.image_url, available: row.available } : i));
       showToast("Item updated ✓");
     } else {
       const { data, error } = await supabase.from("menu_items").insert(row).select().single();
-      if (error) {
-        showToast(error.message, "warn");
-        return false;
-      }
+      if (error) { showToast(error.message, "warn"); return false; }
       setItems((p) => [...p, mapItemFromDb(data)]);
       showToast("Item added ✓");
     }
@@ -629,10 +770,7 @@ export default function RestaurantAdmin() {
   const deleteItem = async (id) => {
     if (!restaurant?.id) return;
     const { error } = await supabase.from("menu_items").delete().eq("id", id).eq("restaurant_id", restaurant.id);
-    if (error) {
-      showToast(error.message, "warn");
-      return;
-    }
+    if (error) { showToast(error.message, "warn"); return; }
     setItems((p) => p.filter((i) => i.id !== String(id)));
     setConfirmDel(null);
     showToast("Deleted", "warn");
@@ -644,39 +782,22 @@ export default function RestaurantAdmin() {
     if (!cur) return;
     const next = !cur.available;
     const { error } = await supabase.from("menu_items").update({ available: next }).eq("id", id).eq("restaurant_id", restaurant.id);
-    if (error) {
-      showToast(error.message, "warn");
-      return;
-    }
+    if (error) { showToast(error.message, "warn"); return; }
     setItems((p) => p.map((i) => (i.id === String(id) ? { ...i, available: next } : i)));
   };
 
   const saveCat = async (form) => {
     if (!restaurant?.id) return;
-    const base = {
-      restaurant_id: restaurant.id,
-      name: form.name.trim(),
-      icon: form.icon || "🍽️",
-    };
+    const base = { restaurant_id: restaurant.id, name: form.name.trim(), icon: form.icon || "🍽️" };
     if (form.id) {
-      const { error } = await supabase
-        .from("categories")
-        .update({ ...base, sort_order: form.sort ?? 0 })
-        .eq("id", form.id)
-        .eq("restaurant_id", restaurant.id);
-      if (error) {
-        showToast(error.message, "warn");
-        return;
-      }
+      const { error } = await supabase.from("categories").update({ ...base, sort_order: form.sort ?? 0 }).eq("id", form.id).eq("restaurant_id", restaurant.id);
+      if (error) { showToast(error.message, "warn"); return; }
       setCats((p) => p.map((c) => (c.id === String(form.id) ? { ...c, name: base.name, icon: base.icon, sort: form.sort ?? 0 } : c)));
       showToast("Category saved ✓");
     } else {
       const nextSort = cats.length ? Math.max(...cats.map((c) => c.sort)) + 1 : 1;
       const { data, error } = await supabase.from("categories").insert({ ...base, sort_order: nextSort }).select().single();
-      if (error) {
-        showToast(error.message, "warn");
-        return;
-      }
+      if (error) { showToast(error.message, "warn"); return; }
       setCats((p) => [...p, mapCategoryFromDb(data)]);
       showToast("Category saved ✓");
     }
@@ -686,10 +807,7 @@ export default function RestaurantAdmin() {
   const deleteCategory = async (id) => {
     if (!restaurant?.id) return;
     const { error } = await supabase.from("categories").delete().eq("id", id).eq("restaurant_id", restaurant.id);
-    if (error) {
-      showToast(error.message, "warn");
-      return;
-    }
+    if (error) { showToast(error.message, "warn"); return; }
     setCats((p) => p.filter((c) => c.id !== String(id)));
     setConfirmDel(null);
     showToast("Deleted", "warn");
@@ -698,10 +816,7 @@ export default function RestaurantAdmin() {
   const updateOrderStatus = async (id, status) => {
     if (!restaurant?.id) return;
     const { error } = await supabase.from("orders").update({ status }).eq("id", id).eq("restaurant_id", restaurant.id);
-    if (error) {
-      showToast(error.message, "warn");
-      return;
-    }
+    if (error) { showToast(error.message, "warn"); return; }
     setOrders((p) => p.map((o) => (o.id === String(id) ? { ...o, status } : o)));
     showToast(`Order marked ${ORDER_META[status].label}`);
   };
@@ -715,10 +830,7 @@ export default function RestaurantAdmin() {
 
   const saveSettings = async () => {
     const rid = restaurant?.id;
-    if (rid == null || rid === "") {
-      showToast("Missing restaurant id", "warn");
-      return;
-    }
+    if (rid == null || rid === "") { showToast("Missing restaurant id", "warn"); return; }
     setSettingsSaving(true);
     try {
       const newPassword = settingsForm.new_password.trim();
@@ -731,22 +843,8 @@ export default function RestaurantAdmin() {
       };
       if (newPassword) payload.password = newPassword;
       const { error } = await supabase.from("restaurants").update(payload).eq("id", String(rid));
-      if (error) {
-        showToast(error.message, "warn");
-        return;
-      }
-      setRestaurant((r) =>
-        r
-          ? {
-              ...r,
-              name: payload.name,
-              location: payload.location,
-              contact_email: payload.contact_email,
-              tables_count: tablesNum,
-              ...(newPassword ? { password: newPassword } : {}),
-            }
-          : r
-      );
+      if (error) { showToast(error.message, "warn"); return; }
+      setRestaurant((r) => r ? { ...r, name: payload.name, location: payload.location, contact_email: payload.contact_email, tables_count: tablesNum, ...(newPassword ? { password: newPassword } : {}) } : r);
       setSettingsForm((f) => ({ ...f, new_password: "" }));
       showToast("Settings saved ✓");
     } catch (e) {
@@ -757,11 +855,7 @@ export default function RestaurantAdmin() {
   };
 
   const catName = (id) => cats.find((c) => c.id === id)?.name || "—";
-
-  const filteredItems = items.filter(
-    (i) => i.name.toLowerCase().includes(search.toLowerCase()) && (filterCat === "all" || i.cat === filterCat)
-  );
-
+  const filteredItems = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()) && (filterCat === "all" || i.cat === filterCat));
   const newOrders = orders.filter((o) => o.status === "new").length;
   const todayRevenue = orders.reduce((s, o) => s + o.total, 0);
   const displayTab = !features.ordering && tab === "orders" ? "menu" : tab;
@@ -770,17 +864,9 @@ export default function RestaurantAdmin() {
     if (!authed || !restaurant?.id) return undefined;
     const channel = supabase
       .channel("orders")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurant.id}` },
-        () => {
-          void refreshOrders(restaurant.id);
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders", filter: `restaurant_id=eq.${restaurant.id}` }, () => { void refreshOrders(restaurant.id); })
       .subscribe();
-    return () => {
-      void supabase.removeChannel(channel);
-    };
+    return () => { void supabase.removeChannel(channel); };
   }, [authed, restaurant?.id, refreshOrders]);
 
   if (!authed) return <Login busy={loginBusy} onLogin={async (pw) => { setLoginBusy(true); try { return await handleLogin(pw); } finally { setLoginBusy(false); } }} />;
@@ -815,279 +901,222 @@ export default function RestaurantAdmin() {
         <div style={S.sideFooter}>
           <div style={{ fontSize:10, fontFamily:"DM Mono", color:"#c4b8a8", marginBottom:4 }}>Plan</div>
           <div style={{ fontSize:12, fontFamily:"DM Mono", color:"#3d7a3d", fontWeight:600, marginBottom:12 }}>● {restaurant?.plan}</div>
-          <button type="button" className="btn-signout" style={{ width:"100%", background:"transparent", border:"1px solid #e4dcd0", borderRadius:8, padding:"10px", color:"#a89880", fontSize:11, fontFamily:"DM Mono", cursor:"pointer", minHeight:40 }}
-            onClick={signOut}>Sign Out</button>
+          <button type="button" className="btn-signout" style={{ width:"100%", background:"transparent", border:"1px solid #e4dcd0", borderRadius:8, padding:"10px", color:"#a89880", fontSize:11, fontFamily:"DM Mono", cursor:"pointer", minHeight:40 }} onClick={signOut}>Sign Out</button>
         </div>
       </aside>
 
       <main className="admin-main" style={S.main}>
         {dataLoading ? (
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:240, fontFamily:"DM Mono", fontSize:14, color:"#a89880" }}>
-            Loading…
-          </div>
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", minHeight:240, fontFamily:"DM Mono", fontSize:14, color:"#a89880" }}>Loading…</div>
         ) : (
           <>
-        {displayTab==="orders" && (
-          <div className="fade-up">
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24 }}>
-              <div>
-                <h1 style={S.pageTitle}>Orders</h1>
-                <p style={S.pageSub}>Live order management — today: <strong style={{ color:"#1a1714" }}>{fmt(todayRevenue)}</strong></p>
-              </div>
-            </div>
-            <div className="orders-board">
-              {["new","preparing","ready","done"].map(status=>{
-                const om = ORDER_META[status];
-                const col = orders.filter(o=>o.status===status);
-                return (
-                  <div key={status}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, padding:"6px 12px", background:om.bg, borderRadius:20, width:"fit-content" }}>
-                      <span style={{ fontSize:10, color:om.dot }}>●</span>
-                      <span style={{ fontSize:11, fontFamily:"DM Mono", fontWeight:600, color:om.text }}>{om.label}</span>
-                      <span style={{ fontSize:10, fontFamily:"DM Mono", color:om.text, opacity:0.7 }}>{col.length}</span>
-                    </div>
-                    <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                      {col.length===0 && <div style={{ fontSize:12, color:"#c4b8a8", fontFamily:"DM Mono", padding:"20px 0", textAlign:"center" }}>Empty</div>}
-                      {col.map(o=><OrderCard key={o.id} order={o} onStatusChange={updateOrderStatus}/>)}
-                    </div>
+            {displayTab==="orders" && (
+              <div className="fade-up">
+                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24 }}>
+                  <div>
+                    <h1 style={S.pageTitle}>Orders</h1>
+                    <p style={S.pageSub}>Live order management — today: <strong style={{ color:"#1a1714" }}>{fmt(todayRevenue)}</strong></p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {displayTab==="menu" && (
-          <div className="fade-up">
-            <div className="menu-toolbar" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
-              <div>
-                <h1 style={S.pageTitle}>Menu Items</h1>
-                <p style={S.pageSub}>{items.length} items · {items.filter(i=>i.available).length} available</p>
-              </div>
-              <div className="menu-toolbar-controls" style={{ display:"flex", gap:10, alignItems:"center" }}>
-                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={S.searchInput} />
-                <select value={filterCat} onChange={e=>setFilterCat(e.target.value)} style={S.filterSel}>
-                  <option value="all">All Categories</option>
-                  {cats.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                </select>
-                <button type="button" className="btn-accent" style={S.accentBtn} onClick={()=>setItemModal("new")}>+ Add Item</button>
-              </div>
-            </div>
-            <div className="admin-table-wrap" style={S.table}>
-              <div style={S.thead}>
-                <span style={{ flex:4 }}>Item</span>
-                <span style={{ flex:2 }}>Category</span>
-                <span style={{ flex:1 }}>Price</span>
-                <span style={{ flex:1 }}>Status</span>
-                <span style={{ flex:1 }}>Actions</span>
-              </div>
-              {filteredItems.length===0 && <div style={{ padding:"40px", textAlign:"center", color:"#c4b8a8", fontFamily:"DM Mono" }}>No items found</div>}
-              {filteredItems.map(item=>(
-                <div
-                  key={item.id}
-                  role="button"
-                  tabIndex={0}
-                  className="row-hover"
-                  style={{ ...S.trow, cursor:"pointer" }}
-                  onClick={()=>setItemModal(item)}
-                  onKeyDown={(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setItemModal(item);} }}
-                >
-                  <span style={{ flex:4, display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
-                    {item.img && <img src={item.img} alt="" style={{ width:46, height:46, borderRadius:10, objectFit:"cover", flexShrink:0 }} onError={e=>e.target.style.display="none"} />}
-                    <span style={{ minWidth:0 }}>
-                      <div style={{ fontWeight:600, fontSize:14, color:"#1a1714" }}>{item.name}</div>
-                      <div style={{ fontSize:11, color:"#c4b8a8", marginTop:2 }}>{item.desc?.slice(0,50)}…</div>
-                    </span>
-                  </span>
-                  <span style={{ flex:2 }}><span style={{ fontSize:11, fontFamily:"DM Mono", padding:"3px 10px", borderRadius:20, background:"#f5f0e8", color:"#8a7d6b" }}>{catName(item.cat)}</span></span>
-                  <span style={{ flex:1, fontFamily:"DM Mono", fontWeight:600, fontSize:14, color:"#1a1714" }}>{fmt(item.price)}</span>
-                  <span style={{ flex:1 }}>
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      className="chip-avail"
-                      onClick={(e)=>{ e.stopPropagation(); toggleAvail(item.id); }}
-                      onKeyDown={(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); e.stopPropagation(); toggleAvail(item.id);} }}
-                      style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", boxSizing:"border-box", minWidth:84, fontSize:11, fontFamily:"DM Mono", fontWeight:600, padding:"5px 10px", borderRadius:20, cursor:"pointer", background:item.available?"#eaf5ea":"#fdecea", color:item.available?"#2e7d32":"#c62828", lineHeight:1.2 }}
-                    >
-                      {item.available?"● On":"○ Off"}
-                    </span>
-                  </span>
-                  <span style={{ flex:1, display:"flex", gap:8, justifyContent:"flex-end" }} onClick={e=>e.stopPropagation()}>
-                    <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setItemModal(item)} aria-label="Edit item">✏️</button>
-                    <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setConfirmDel({type:"item",id:item.id,name:item.name})} aria-label="Delete item">🗑</button>
-                  </span>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+                <div className="orders-board">
+                  {["new","preparing","ready","done"].map(status=>{
+                    const om = ORDER_META[status];
+                    const col = orders.filter(o=>o.status===status);
+                    return (
+                      <div key={status}>
+                        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, padding:"6px 12px", background:om.bg, borderRadius:20, width:"fit-content" }}>
+                          <span style={{ fontSize:10, color:om.dot }}>●</span>
+                          <span style={{ fontSize:11, fontFamily:"DM Mono", fontWeight:600, color:om.text }}>{om.label}</span>
+                          <span style={{ fontSize:10, fontFamily:"DM Mono", color:om.text, opacity:0.7 }}>{col.length}</span>
+                        </div>
+                        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+                          {col.length===0 && <div style={{ fontSize:12, color:"#c4b8a8", fontFamily:"DM Mono", padding:"20px 0", textAlign:"center" }}>Empty</div>}
+                          {col.map(o=><OrderCard key={o.id} order={o} onStatusChange={updateOrderStatus}/>)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-        {displayTab==="categories" && (
-          <div className="fade-up">
-            <div className="menu-toolbar" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
-              <div>
-                <h1 style={S.pageTitle}>Categories</h1>
-                <p style={S.pageSub}>Organise your menu sections</p>
-              </div>
-              <button type="button" className="btn-accent" style={S.accentBtn} onClick={()=>setCatModal("new")}>+ Add Category</button>
-            </div>
-            <div className="admin-table-wrap" style={S.table}>
-              <div style={S.thead}>
-                <span style={{ flex:1 }}>Icon</span>
-                <span style={{ flex:4 }}>Name</span>
-                <span style={{ flex:2 }}>Items</span>
-                <span style={{ flex:1 }}>Actions</span>
-              </div>
-              {cats.map(cat=>{
-                const count = items.filter(i=>i.cat===cat.id).length;
-                const avail = items.filter(i=>i.cat===cat.id&&i.available).length;
-                return (
-                  <div key={cat.id} className="row-hover" style={S.trow}>
-                    <span style={{ flex:1, fontSize:24 }}>{cat.icon}</span>
-                    <span style={{ flex:4, fontWeight:700, fontSize:15, color:"#1a1714" }}>{cat.name}</span>
-                    <span style={{ flex:2, fontSize:13, color:"#a89880", fontFamily:"DM Mono" }}>{count} items · {avail} available</span>
-                    <span style={{ flex:1, display:"flex", gap:8, justifyContent:"flex-end" }}>
-                      <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setCatModal(cat)} aria-label="Edit category">✏️</button>
-                      <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setConfirmDel({type:"cat",id:cat.id,name:cat.name})} aria-label="Delete category">🗑</button>
-                    </span>
+            {displayTab==="menu" && (
+              <div className="fade-up">
+                <div className="menu-toolbar" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
+                  <div>
+                    <h1 style={S.pageTitle}>Menu Items</h1>
+                    <p style={S.pageSub}>{items.length} items · {items.filter(i=>i.available).length} available</p>
                   </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+                  <div className="menu-toolbar-controls" style={{ display:"flex", gap:10, alignItems:"center" }}>
+                    <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search…" style={S.searchInput} />
+                    <select value={filterCat} onChange={e=>setFilterCat(e.target.value)} style={S.filterSel}>
+                      <option value="all">All Categories</option>
+                      {cats.map(c=><option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
+                    </select>
+                    <button type="button" className="btn-accent" style={S.accentBtn} onClick={()=>setItemModal("new")}>+ Add Item</button>
+                  </div>
+                </div>
+                <div className="admin-table-wrap" style={S.table}>
+                  <div style={S.thead}>
+                    <span style={{ flex:4 }}>Item</span>
+                    <span style={{ flex:2 }}>Category</span>
+                    <span style={{ flex:1 }}>Price</span>
+                    <span style={{ flex:1 }}>Status</span>
+                    <span style={{ flex:1 }}>Actions</span>
+                  </div>
+                  {filteredItems.length===0 && <div style={{ padding:"40px", textAlign:"center", color:"#c4b8a8", fontFamily:"DM Mono" }}>No items found</div>}
+                  {filteredItems.map(item=>(
+                    <div key={item.id} role="button" tabIndex={0} className="row-hover"
+                      style={{ ...S.trow, cursor:"pointer" }}
+                      onClick={()=>setItemModal(item)}
+                      onKeyDown={(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setItemModal(item);} }}>
+                      <span style={{ flex:4, display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
+                        {item.img && <img src={item.img} alt="" style={{ width:46, height:46, borderRadius:10, objectFit:"cover", flexShrink:0 }} onError={e=>e.target.style.display="none"} />}
+                        <span style={{ minWidth:0 }}>
+                          <div style={{ fontWeight:600, fontSize:14, color:"#1a1714" }}>{item.name}</div>
+                          <div style={{ fontSize:11, color:"#c4b8a8", marginTop:2 }}>{item.desc?.slice(0,50)}…</div>
+                        </span>
+                      </span>
+                      <span style={{ flex:2 }}><span style={{ fontSize:11, fontFamily:"DM Mono", padding:"3px 10px", borderRadius:20, background:"#f5f0e8", color:"#8a7d6b" }}>{catName(item.cat)}</span></span>
+                      <span style={{ flex:1, fontFamily:"DM Mono", fontWeight:600, fontSize:14, color:"#1a1714" }}>{fmt(item.price)}</span>
+                      <span style={{ flex:1 }}>
+                        <span role="button" tabIndex={0} className="chip-avail"
+                          onClick={(e)=>{ e.stopPropagation(); toggleAvail(item.id); }}
+                          onKeyDown={(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); e.stopPropagation(); toggleAvail(item.id);} }}
+                          style={{ display:"inline-flex", alignItems:"center", justifyContent:"center", boxSizing:"border-box", minWidth:84, fontSize:11, fontFamily:"DM Mono", fontWeight:600, padding:"5px 10px", borderRadius:20, cursor:"pointer", background:item.available?"#eaf5ea":"#fdecea", color:item.available?"#2e7d32":"#c62828", lineHeight:1.2 }}>
+                          {item.available?"● On":"○ Off"}
+                        </span>
+                      </span>
+                      <span style={{ flex:1, display:"flex", gap:8, justifyContent:"flex-end" }} onClick={e=>e.stopPropagation()}>
+                        <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setItemModal(item)} aria-label="Edit item">✏️</button>
+                        <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setConfirmDel({type:"item",id:item.id,name:item.name})} aria-label="Delete item">🗑</button>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {displayTab==="qr" && restaurant?.id && (
-          <QRSection restaurantId={String(restaurant.id)} orderingEnabled={features.ordering} tablesCount={tablesCount} />
-        )}
+            {displayTab==="categories" && (
+              <div className="fade-up">
+                <div className="menu-toolbar" style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-end", marginBottom:24, gap:16, flexWrap:"wrap" }}>
+                  <div>
+                    <h1 style={S.pageTitle}>Categories</h1>
+                    <p style={S.pageSub}>Organise your menu sections</p>
+                  </div>
+                  <button type="button" className="btn-accent" style={S.accentBtn} onClick={()=>setCatModal("new")}>+ Add Category</button>
+                </div>
+                <div className="admin-table-wrap" style={S.table}>
+                  <div style={S.thead}>
+                    <span style={{ flex:1 }}>Icon</span>
+                    <span style={{ flex:4 }}>Name</span>
+                    <span style={{ flex:2 }}>Items</span>
+                    <span style={{ flex:1 }}>Actions</span>
+                  </div>
+                  {cats.map(cat=>{
+                    const count = items.filter(i=>i.cat===cat.id).length;
+                    const avail = items.filter(i=>i.cat===cat.id&&i.available).length;
+                    return (
+                      <div key={cat.id} className="row-hover" style={S.trow}>
+                        <span style={{ flex:1, fontSize:24 }}>{cat.icon}</span>
+                        <span style={{ flex:4, fontWeight:700, fontSize:15, color:"#1a1714" }}>{cat.name}</span>
+                        <span style={{ flex:2, fontSize:13, color:"#a89880", fontFamily:"DM Mono" }}>{count} items · {avail} available</span>
+                        <span style={{ flex:1, display:"flex", gap:8, justifyContent:"flex-end" }}>
+                          <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setCatModal(cat)} aria-label="Edit category">✏️</button>
+                          <button type="button" className="icon-hover" style={S.iconBtn} onClick={()=>setConfirmDel({type:"cat",id:cat.id,name:cat.name})} aria-label="Delete category">🗑</button>
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
-        {displayTab==="settings" && (
-          <div className="fade-up" style={{ maxWidth:520 }}>
-            <h1 style={S.pageTitle}>Settings</h1>
-            <p style={S.pageSub}>Restaurant configuration</p>
-            <form
-              style={{ marginTop:24, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24, display:"flex", flexDirection:"column", gap:16 }}
-              onSubmit={(e) => {
-                e.preventDefault();
-                void saveSettings();
-              }}
-            >
-              {[
-                { label:"Restaurant Name", key:"name" },
-                { label:"Location",        key:"location" },
-                { label:"Contact Email",   key:"contact_email" },
-              ].map(({ label, key }) => (
-                <div key={label} style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                  <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>{label.toUpperCase()}</label>
-                  <input
-                    style={S.inp}
-                    value={settingsForm[key]}
-                    onChange={(e) => setSettingsForm((p) => ({ ...p, [key]: e.target.value }))}
-                    disabled={settingsSaving}
-                  />
+            {displayTab==="qr" && restaurant?.id && (
+              <QRSection
+                restaurantId={String(restaurant.id)}
+                restaurantName={restaurant.name || ""}
+                orderingEnabled={features.ordering}
+                tablesCount={tablesCount}
+              />
+            )}
+
+            {displayTab==="settings" && (
+              <div className="fade-up" style={{ maxWidth:520 }}>
+                <h1 style={S.pageTitle}>Settings</h1>
+                <p style={S.pageSub}>Restaurant configuration</p>
+                <form style={{ marginTop:24, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24, display:"flex", flexDirection:"column", gap:16 }}
+                  onSubmit={(e) => { e.preventDefault(); void saveSettings(); }}>
+                  {[
+                    { label:"Restaurant Name", key:"name" },
+                    { label:"Location",        key:"location" },
+                    { label:"Contact Email",   key:"contact_email" },
+                  ].map(({ label, key }) => (
+                    <div key={label} style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                      <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>{label.toUpperCase()}</label>
+                      <input style={S.inp} value={settingsForm[key]} onChange={(e) => setSettingsForm((p) => ({ ...p, [key]: e.target.value }))} disabled={settingsSaving} />
+                    </div>
+                  ))}
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NUMBER OF TABLES</label>
+                    <input type="number" min={0} style={S.inp} value={settingsForm.tables_count} onChange={(e) => setSettingsForm((p) => ({ ...p, tables_count: e.target.value }))} disabled={settingsSaving} />
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NEW PASSWORD</label>
+                    <input type="password" placeholder="Leave blank to keep current" style={S.inp} value={settingsForm.new_password} onChange={(e) => setSettingsForm((p) => ({ ...p, new_password: e.target.value }))} disabled={settingsSaving} />
+                  </div>
+                  <button type="submit" className="btn-accent" disabled={settingsSaving}
+                    style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4, opacity: settingsSaving ? 0.85 : 1, cursor: settingsSaving ? "wait" : "pointer" }}>
+                    {settingsSaving ? "Saving..." : "Save Settings"}
+                  </button>
+                </form>
+                <div style={{ marginTop:16, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24 }}>
+                  <div style={{ fontSize:11, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em", marginBottom:16 }}>FEATURES</div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", gap:16 }}>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:600, color:"#1a1714", fontFamily:"Syne", marginBottom:4 }}>Online Ordering</div>
+                      <div style={{ fontSize:12, color:"#8a7d6b", lineHeight:1.45 }}>Allow customers to order directly from their phone</div>
+                    </div>
+                    <AdminToggle checked={features.ordering} onChange={(v) => {
+                      if (!v) setTab((t) => (t === "orders" ? "menu" : t));
+                      setFeatures((f) => {
+                        const next = { ordering: v, payment: v ? f.payment : false };
+                        void persistFeatures(next);
+                        return next;
+                      });
+                    }} />
+                  </div>
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0 0", borderTop:"1px solid #f0ebe4", marginTop:4, gap:16 }}>
+                    <div>
+                      <div style={{ fontSize:13, fontWeight:600, color:"#1a1714", fontFamily:"Syne", marginBottom:4 }}>Online Payment</div>
+                      <div style={{ fontSize:12, color:"#8a7d6b", lineHeight:1.45 }}>
+                        Allow customers to pay from their phone (requires ordering to be enabled)
+                      </div>
+                    </div>
+                    <AdminToggle checked={features.payment} disabled={!features.ordering} onChange={(v) => {
+                      setFeatures((f) => {
+                        const next = { ...f, payment: v };
+                        void persistFeatures(next);
+                        return next;
+                      });
+                    }} />
+                  </div>
                 </div>
-              ))}
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NUMBER OF TABLES</label>
-                <input
-                  type="number"
-                  min={0}
-                  style={S.inp}
-                  value={settingsForm.tables_count}
-                  onChange={(e) => setSettingsForm((p) => ({ ...p, tables_count: e.target.value }))}
-                  disabled={settingsSaving}
-                />
               </div>
-              <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NEW PASSWORD</label>
-                <input
-                  type="password"
-                  placeholder="Leave blank to keep current"
-                  style={S.inp}
-                  value={settingsForm.new_password}
-                  onChange={(e) => setSettingsForm((p) => ({ ...p, new_password: e.target.value }))}
-                  disabled={settingsSaving}
-                />
-              </div>
-              <button
-                type="submit"
-                className="btn-accent"
-                disabled={settingsSaving}
-                style={{ ...S.accentBtn, alignSelf:"flex-start", marginTop:4, opacity: settingsSaving ? 0.85 : 1, cursor: settingsSaving ? "wait" : "pointer" }}
-              >
-                {settingsSaving ? "Saving..." : "Save Settings"}
-              </button>
-            </form>
-            <div style={{ marginTop:16, background:"#fff", border:"1px solid #e4dcd0", borderRadius:16, padding:24 }}>
-              <div style={{ fontSize:11, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em", marginBottom:16 }}>FEATURES</div>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", gap:16 }}>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:"#1a1714", fontFamily:"Syne", marginBottom:4 }}>Online Ordering</div>
-                  <div style={{ fontSize:12, color:"#8a7d6b", lineHeight:1.45 }}>Allow customers to order directly from their phone</div>
-                </div>
-                <AdminToggle
-                  checked={features.ordering}
-                  onChange={(v) => {
-                    if (!v) setTab((t) => (t === "orders" ? "menu" : t));
-                    setFeatures((f) => {
-                      const next = { ordering: v, payment: v ? f.payment : false };
-                      void persistFeatures(next);
-                      return next;
-                    });
-                  }}
-                />
-              </div>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0 0", borderTop:"1px solid #f0ebe4", marginTop:4, gap:16 }}>
-                <div>
-                  <div style={{ fontSize:13, fontWeight:600, color:"#1a1714", fontFamily:"Syne", marginBottom:4 }}>Online Payment</div>
-                  <div style={{ fontSize:12, color:"#8a7d6b", lineHeight:1.45 }}>Allow customers to pay from their phone (requires ordering to be enabled)</div>
-                </div>
-                <AdminToggle
-                  checked={features.payment}
-                  disabled={!features.ordering}
-                  onChange={(v) => {
-                    setFeatures((f) => {
-                      const next = { ...f, payment: v };
-                      void persistFeatures(next);
-                      return next;
-                    });
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
+            )}
           </>
         )}
       </main>
 
       {itemModal && (
-        <ItemModal
-          key={itemModal === "new" ? "new-item" : itemModal.id}
-          item={itemModal === "new" ? null : itemModal}
-          cats={cats}
-          onSave={saveItem}
-          onClose={() => setItemModal(null)}
-          showToast={showToast}
-        />
+        <ItemModal key={itemModal === "new" ? "new-item" : itemModal.id} item={itemModal === "new" ? null : itemModal} cats={cats} onSave={saveItem} onClose={() => setItemModal(null)} showToast={showToast} />
       )}
       {catModal && (
-        <CatModal
-          key={catModal === "new" ? "new-cat" : catModal.id}
-          cat={catModal === "new" ? null : catModal}
-          onSave={saveCat}
-          onClose={() => setCatModal(null)}
-        />
+        <CatModal key={catModal === "new" ? "new-cat" : catModal.id} cat={catModal === "new" ? null : catModal} onSave={saveCat} onClose={() => setCatModal(null)} />
       )}
       {confirmDel && (
-        <Confirm
-          msg={`Delete "${confirmDel.name}"?`}
-          onConfirm={() => (confirmDel.type === "item" ? deleteItem(confirmDel.id) : deleteCategory(confirmDel.id))}
-          onCancel={() => setConfirmDel(null)}
-        />
+        <Confirm msg={`Delete "${confirmDel.name}"?`} onConfirm={() => (confirmDel.type === "item" ? deleteItem(confirmDel.id) : deleteCategory(confirmDel.id))} onCancel={() => setConfirmDel(null)} />
       )}
-
       {toast && (
         <div style={{ position:"fixed", bottom:28, left:"50%", transform:"translateX(-50%)", padding:"11px 22px", borderRadius:28, fontSize:12, fontFamily:"DM Mono", fontWeight:500, zIndex:999, background:toast.type==="warn"?"#fdecea":"#eaf5ea", color:toast.type==="warn"?"#c62828":"#2e7d32", border:`1px solid ${toast.type==="warn"?"#f5c6c6":"#c6e6c6"}` }}>
           {toast.msg}

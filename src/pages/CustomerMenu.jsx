@@ -14,6 +14,7 @@ const GS = () => (
     @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
     @keyframes slideUp  { from { opacity:0; transform:translateY(100%); } to { opacity:1; transform:translateY(0); } }
     @keyframes spin    { to { transform: rotate(360deg); } }
+    @keyframes pulse   { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
     .fade-up  { animation: fadeUp  0.4s cubic-bezier(0.16,1,0.3,1) both; }
     .fade-in  { animation: fadeIn  0.25s ease both; }
     .slide-up { animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1) both; }
@@ -22,17 +23,67 @@ const GS = () => (
     .cat-btn { transition: all 0.2s ease; }
     .add-btn:active { transform: scale(0.92); }
     .menu-spinner {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      border: 3px solid #e4dcd0;
-      border-top-color: #1a140e;
+      width: 36px; height: 36px; border-radius: 50%;
+      border: 3px solid #e4dcd0; border-top-color: #1a140e;
       animation: spin 0.7s linear infinite;
     }
   `}</style>
 );
 
 const fmt = (n) => `₼${Number(n).toFixed(2)}`;
+
+// ─────────────────────────────────────────────────────
+// 💳 PAYMENT PROVIDER INTERFACE
+// This is the "ready motor" — to activate a payment provider:
+// 1. Set `PAYMENT_ENABLED = true` in the active provider
+// 2. Implement `initiatePayment(params)` to open the payment gateway
+// 3. Wire the result back to `onPaymentResult` in CartSheet
+//
+// Currently: all providers return { enabled: false } — waiter flow only.
+// When payment features.payment flag is true AND a provider is enabled,
+// the CartSheet will show the payment UI instead of the waiter button.
+// ─────────────────────────────────────────────────────
+const PAYMENT_PROVIDERS = {
+  // Stripe (international)
+  stripe: {
+    enabled: false,
+    name: "Stripe",
+    async initiate({ totalAzn, orderId, tableNum }) {
+      // TODO: call your backend to create a Stripe PaymentIntent
+      // const res = await fetch("/api/stripe/create-payment-intent", { ... })
+      // Then open Stripe Elements or redirect to Stripe Checkout
+      console.log("[PaymentProvider:stripe] initiate", { totalAzn, orderId, tableNum });
+      return { ok: false, message: "Stripe not configured" };
+    },
+  },
+  // Kapital Bank (Azerbaijan)
+  kapital: {
+    enabled: false,
+    name: "Kapital Bank",
+    async initiate({ totalAzn, orderId, tableNum }) {
+      // TODO: call your backend to get a Kapital payment URL
+      // const res = await fetch("/api/kapital/create", { ... })
+      console.log("[PaymentProvider:kapital] initiate", { totalAzn, orderId, tableNum });
+      return { ok: false, message: "Kapital not configured" };
+    },
+  },
+  // ABB Pay / local AZ provider
+  abb: {
+    enabled: false,
+    name: "ABB Pay",
+    async initiate({ totalAzn, orderId, tableNum }) {
+      console.log("[PaymentProvider:abb] initiate", { totalAzn, orderId, tableNum });
+      return { ok: false, message: "ABB Pay not configured" };
+    },
+  },
+};
+
+// Get the first enabled payment provider, or null
+function getActivePaymentProvider() {
+  return Object.values(PAYMENT_PROVIDERS).find((p) => p.enabled) ?? null;
+}
+
+// ─────────────────────────────────────────────────────
 
 const UI = {
   EN: {
@@ -41,8 +92,10 @@ const UI = {
     yourOrder: "Your Order",
     placeOrderBtn: "Place Order →",
     sendWaiterBtn: "Send Order to Waiter →",
+    payNowBtn: "Pay Now →",
     paymentSubtitle: "Payment at the table",
     waiterSubtitle: "A waiter will come to your table",
+    payingSubtitle: "Processing payment…",
     orderPlacedTitle: "Order Placed!",
     orderSentTitle: "Sent to the team!",
     successBody: "Your order has been sent to the kitchen. A waiter will confirm shortly.",
@@ -55,6 +108,7 @@ const UI = {
     loadFailTitle: "Couldn't load menu",
     restaurantNotFound: "Restaurant not found",
     orderErrorGeneric: "Something went wrong",
+    paymentError: "Payment failed. Please try again or pay at the table.",
   },
   AZ: {
     scanPrompt: "Menüyə baxmaq üçün skan edin · Ofisiant sifariş alacaq",
@@ -62,8 +116,10 @@ const UI = {
     yourOrder: "Sifarişiniz",
     placeOrderBtn: "Sifariş ver →",
     sendWaiterBtn: "Ofisiantə göndər →",
+    payNowBtn: "Ödə →",
     paymentSubtitle: "Masada ödəniş",
     waiterSubtitle: "Ofisiant gələcək",
+    payingSubtitle: "Ödəniş emal edilir…",
     orderPlacedTitle: "Sifariş qəbul edildi!",
     orderSentTitle: "Komandaya göndərildi!",
     successBody: "Sifarişiniz mətbəxə göndərildi. Ofisiant təsdiqləyəcək.",
@@ -76,6 +132,7 @@ const UI = {
     loadFailTitle: "Menü yüklənmədi",
     restaurantNotFound: "Restoran tapılmadı",
     orderErrorGeneric: "Xəta baş verdi",
+    paymentError: "Ödəniş alınmadı. Yenidən cəhd edin.",
   },
   RU: {
     scanPrompt: "Сканируйте меню · Официант примет заказ",
@@ -83,8 +140,10 @@ const UI = {
     yourOrder: "Ваш заказ",
     placeOrderBtn: "Оформить заказ →",
     sendWaiterBtn: "Отправить официанту →",
+    payNowBtn: "Оплатить →",
     paymentSubtitle: "Оплата за столом",
     waiterSubtitle: "Официант подойдет",
+    payingSubtitle: "Обработка оплаты…",
     orderPlacedTitle: "Заказ принят!",
     orderSentTitle: "Отправлено!",
     successBody: "Заказ отправлен на кухню. Официант подтвердит.",
@@ -97,15 +156,12 @@ const UI = {
     loadFailTitle: "Не удалось загрузить меню",
     restaurantNotFound: "Ресторан не найден",
     orderErrorGeneric: "Что-то пошло не так",
+    paymentError: "Ошибка оплаты. Попробуйте ещё раз.",
   },
 };
 
-function stringsFor(lang) {
-  return UI[lang] || UI.EN;
-}
-
+function stringsFor(lang) { return UI[lang] || UI.EN; }
 const LANG_FLAG = { AZ: "🇦🇿", RU: "🇷🇺", EN: "🇬🇧" };
-
 const LANG_OPTIONS = [
   { code: "AZ", flag: "🇦🇿", label: "Azərbaycanca" },
   { code: "RU", flag: "🇷🇺", label: "Русский" },
@@ -179,11 +235,6 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
         <div style={{ padding:"24px 20px 0" }}>
           <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", lineHeight:1.2, marginBottom:8 }}>{item.name}</div>
           <div style={{ fontSize:14, color:"#8a7d6b", lineHeight:1.6, marginBottom:20 }}>{item.desc}</div>
-          <div style={{ display:"flex", gap:8, marginBottom:24 }}>
-            {["Gluten-free","Dairy"].map(a=>(
-              <span key={a} style={{ fontSize:11, color:"#a89880", border:"1px solid #e4dcd0", borderRadius:20, padding:"3px 10px" }}>{a}</span>
-            ))}
-          </div>
           {orderingEnabled ? (
             <div style={{ display:"flex", alignItems:"center", gap:16 }}>
               <div style={{ display:"flex", alignItems:"center", background:"#f5f0e8", borderRadius:28, padding:"4px" }}>
@@ -208,32 +259,73 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
   );
 }
 
-function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, onPlaceOrder, t }) {
+// ─────────────────────────────────────────────────────
+// CartSheet — payment-ready with waiter fallback
+// ─────────────────────────────────────────────────────
+function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paymentEnabled, onPlaceOrder, t }) {
   const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const [placed, setPlaced] = useState(false);
   const [placing, setPlacing] = useState(false);
+  const [paying, setPaying] = useState(false);
   const [orderError, setOrderError] = useState(null);
 
-  const handlePlace = async () => {
+  const activeProvider = paymentEnabled ? getActivePaymentProvider() : null;
+  const canPay = paymentEnabled && activeProvider !== null;
+
+  // Step 1: always save the order to Supabase first
+  const submitOrder = async () => {
     setOrderError(null);
     setPlacing(true);
     const result = await onPlaceOrder();
     setPlacing(false);
-    if (result.ok) {
-      setPlaced(true);
-    } else {
-      setOrderError(result.message || t.orderErrorGeneric);
+    return result;
+  };
+
+  // Waiter flow: submit order → show success
+  const handleWaiterOrder = async () => {
+    const result = await submitOrder();
+    if (result.ok) setPlaced(true);
+    else setOrderError(result.message || t.orderErrorGeneric);
+  };
+
+  // Payment flow: submit order → initiate payment → show success
+  const handlePayment = async () => {
+    const orderResult = await submitOrder();
+    if (!orderResult.ok) {
+      setOrderError(orderResult.message || t.orderErrorGeneric);
+      return;
+    }
+    setPaying(true);
+    try {
+      const payResult = await activeProvider.initiate({
+        totalAzn: total,
+        orderId: orderResult.orderId,
+        tableNum: tableNumber,
+        restaurantId,
+      });
+      if (payResult.ok) {
+        setPlaced(true);
+      } else {
+        // Payment failed — order already saved, show error with waiter fallback
+        setOrderError(t.paymentError);
+      }
+    } catch (err) {
+      setOrderError(err?.message || t.paymentError);
+    } finally {
+      setPaying(false);
     }
   };
+
+  const busy = placing || paying;
 
   if (placed) return (
     <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(26,20,14,0.6)" }}>
       <div className="fade-up" style={{ background:"#fff", borderRadius:24, padding:"40px 32px", textAlign:"center", margin:24, maxWidth:320 }}>
         <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{paymentEnabled ? t.orderPlacedTitle : t.orderSentTitle}</div>
-        <div style={{ fontSize:14, color:"#8a7d6b", marginBottom:24, lineHeight:1.5 }}>
-          {t.successBody}
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>
+          {canPay ? t.orderPlacedTitle : t.orderSentTitle}
         </div>
+        <div style={{ fontSize:14, color:"#8a7d6b", marginBottom:24, lineHeight:1.5 }}>{t.successBody}</div>
         <div style={{ fontSize:13, color:"#a89880", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
       </div>
     </div>
@@ -248,6 +340,7 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
           <button type="button" onClick={onClose} style={{ background:"#f5f0e8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#8a7d6b" }}>✕</button>
         </div>
         <div style={{ fontSize:12, color:"#a89880", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
+
         <div style={{ overflowY:"auto", flex:1, padding:"0 20px" }}>
           {cart.map(item=>(
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f5f0e8" }}>
@@ -272,19 +365,53 @@ function CartSheet({ cart, tableNumber, onClose, onQtyChange, paymentEnabled, on
             </div>
           ))}
         </div>
+
         <div style={{ padding:"16px 20px 32px", borderTop:"1px solid #f5f0e8" }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
             <span style={{ fontSize:14, color:"#8a7d6b" }}>{t.total}</span>
             <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#1a140e" }}>{fmt(total)}</span>
           </div>
+
           {orderError && (
-            <div style={{ fontSize:12, color:"#c62828", marginBottom:12, textAlign:"center", lineHeight:1.4 }}>{orderError}</div>
+            <div style={{ fontSize:12, color:"#c62828", marginBottom:12, textAlign:"center", lineHeight:1.4, padding:"10px 14px", background:"#fdecea", borderRadius:10 }}>
+              {orderError}
+            </div>
           )}
-          <button type="button" disabled={placing} onClick={handlePlace} style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:placing?"wait":"pointer", fontFamily:"DM Sans", opacity:placing?0.85:1 }}>
-            {placing ? t.sending : (paymentEnabled ? t.placeOrderBtn : t.sendWaiterBtn)}
+
+          {/* ── Payment button (only shown when provider is active) ── */}
+          {canPay && (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={()=>void handlePayment()}
+              style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:busy?"wait":"pointer", fontFamily:"DM Sans", opacity:busy?0.85:1, marginBottom:10 }}>
+              {paying ? t.payingSubtitle : t.payNowBtn}
+            </button>
+          )}
+
+          {/* ── Waiter / Place order button ── */}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={()=>void handleWaiterOrder()}
+            style={{
+              width:"100%",
+              background: canPay ? "transparent" : "#1a140e",
+              color: canPay ? "#8a7d6b" : "#faf8f4",
+              border: canPay ? "1px solid #e4dcd0" : "none",
+              borderRadius:28,
+              padding:"16px",
+              fontSize: canPay ? 13 : 15,
+              fontWeight:600,
+              cursor:busy?"wait":"pointer",
+              fontFamily:"DM Sans",
+              opacity:busy?0.85:1,
+            }}>
+            {placing ? t.sending : (canPay ? t.sendWaiterBtn : t.placeOrderBtn)}
           </button>
+
           <div style={{ textAlign:"center", fontSize:12, color:"#c4b8a8", marginTop:10 }}>
-            {paymentEnabled ? t.paymentSubtitle : t.waiterSubtitle}
+            {canPay ? t.paymentSubtitle : t.waiterSubtitle}
           </div>
         </div>
       </div>
@@ -303,9 +430,7 @@ export default function CustomerMenu() {
   useEffect(() => {
     if (!langMenuOpen) return;
     const close = (e) => {
-      if (langMenuWrapRef.current && !langMenuWrapRef.current.contains(e.target)) {
-        setLangMenuOpen(false);
-      }
+      if (langMenuWrapRef.current && !langMenuWrapRef.current.contains(e.target)) setLangMenuOpen(false);
     };
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
@@ -334,26 +459,10 @@ export default function CustomerMenu() {
         supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId).eq("available", true),
       ]);
       if (cancelled) return;
-      if (rRes.error) {
-        setLoadError(rRes.error.message);
-        setLoading(false);
-        return;
-      }
-      if (!rRes.data) {
-        setLoadError("Restaurant not found");
-        setLoading(false);
-        return;
-      }
-      if (cRes.error) {
-        setLoadError(cRes.error.message);
-        setLoading(false);
-        return;
-      }
-      if (iRes.error) {
-        setLoadError(iRes.error.message);
-        setLoading(false);
-        return;
-      }
+      if (rRes.error) { setLoadError(rRes.error.message); setLoading(false); return; }
+      if (!rRes.data) { setLoadError("Restaurant not found"); setLoading(false); return; }
+      if (cRes.error) { setLoadError(cRes.error.message); setLoading(false); return; }
+      if (iRes.error) { setLoadError(iRes.error.message); setLoading(false); return; }
       setRestaurant(rRes.data);
       setFeatures(normalizeFeatures(rRes.data));
       const mappedCats = (cRes.data || []).map(mapCategoryFromDb);
@@ -383,17 +492,22 @@ export default function CustomerMenu() {
   const cartCount = cart.reduce((s,i)=>s+i.qty,0);
   const cartTotal = cart.reduce((s,i)=>s+i.price*i.qty,0);
 
+  // Returns { ok, orderId?, message? }
   const placeOrder = async () => {
-    const { error } = await supabase.from("orders").insert({
-      restaurant_id: restaurantId,
-      table_number: tableNum,
-      status: "new",
-      items: cart.map((i) => ({ name: i.name, qty: i.qty })),
-      total: cartTotal,
-    });
+    const { data, error } = await supabase
+      .from("orders")
+      .insert({
+        restaurant_id: restaurantId,
+        table_number: tableNum,
+        status: "new",
+        items: cart.map((i) => ({ name: i.name, qty: i.qty })),
+        total: cartTotal,
+      })
+      .select("id")
+      .single();
     if (error) return { ok: false, message: error.message };
     setCart([]);
-    return { ok: true };
+    return { ok: true, orderId: data?.id };
   };
 
   const orderingOn = features.ordering === true;
@@ -438,72 +552,18 @@ export default function CustomerMenu() {
             ) : null}
           </div>
           <div ref={langMenuWrapRef} style={{ position:"relative", marginTop:4, flexShrink:0 }}>
-            <button
-              type="button"
-              aria-label="Language"
-              aria-haspopup="listbox"
-              aria-expanded={langMenuOpen}
+            <button type="button" aria-label="Language" aria-haspopup="listbox" aria-expanded={langMenuOpen}
               onClick={() => setLangMenuOpen((o) => !o)}
-              style={{
-                display:"flex",
-                alignItems:"center",
-                justifyContent:"center",
-                width:44,
-                height:36,
-                padding:0,
-                borderRadius:20,
-                border:"1px solid #e4dcd0",
-                background:"#fff",
-                cursor:"pointer",
-                fontSize:22,
-                lineHeight:1,
-              }}
-            >
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:36, padding:0, borderRadius:20, border:"1px solid #e4dcd0", background:"#fff", cursor:"pointer", fontSize:22, lineHeight:1 }}>
               {LANG_FLAG[lang] || LANG_FLAG.AZ}
             </button>
             {langMenuOpen ? (
-              <div
-                role="listbox"
-                style={{
-                  position:"absolute",
-                  top:"100%",
-                  right:0,
-                  marginTop:6,
-                  minWidth:188,
-                  background:"#fff",
-                  border:"1px solid #e4dcd0",
-                  borderRadius:12,
-                  boxShadow:"0 8px 24px rgba(26,20,14,0.08)",
-                  padding:"6px 0",
-                  zIndex:60,
-                }}
-              >
+              <div role="listbox"
+                style={{ position:"absolute", top:"100%", right:0, marginTop:6, minWidth:188, background:"#fff", border:"1px solid #e4dcd0", borderRadius:12, boxShadow:"0 8px 24px rgba(26,20,14,0.08)", padding:"6px 0", zIndex:60 }}>
                 {LANG_OPTIONS.map(({ code, flag, label }) => (
-                  <button
-                    key={code}
-                    type="button"
-                    role="option"
-                    aria-selected={lang === code}
-                    onClick={() => {
-                      setLang(code);
-                      setLangMenuOpen(false);
-                    }}
-                    style={{
-                      display:"flex",
-                      alignItems:"center",
-                      gap:10,
-                      width:"100%",
-                      padding:"10px 14px",
-                      border:"none",
-                      background:"transparent",
-                      cursor:"pointer",
-                      fontFamily:"DM Sans, sans-serif",
-                      fontSize:13,
-                      fontWeight:500,
-                      color:"#1a140e",
-                      textAlign:"left",
-                    }}
-                  >
+                  <button key={code} type="button" role="option" aria-selected={lang === code}
+                    onClick={() => { setLang(code); setLangMenuOpen(false); }}
+                    style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px", border:"none", background:"transparent", cursor:"pointer", fontFamily:"DM Sans, sans-serif", fontSize:13, fontWeight:500, color:"#1a140e", textAlign:"left" }}>
                     <span style={{ fontSize:18, lineHeight:1 }} aria-hidden>{flag}</span>
                     <span>{label}</span>
                   </button>
@@ -529,7 +589,8 @@ export default function CustomerMenu() {
       <div style={{ flex:1, padding:`16px 16px ${bottomPad}px` }}>
         <div style={{ display:"flex", flexDirection:"column", gap:12, minWidth:0, width:"100%" }}>
           {filtered.map((item, i) => (
-            <div key={item.id} className="item-card fade-up" style={{ animationDelay:`${i*0.05}s`, width:"100%", maxWidth:"100%", minWidth:0, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(26,20,14,0.06)", cursor:"pointer" }}
+            <div key={item.id} className="item-card fade-up"
+              style={{ animationDelay:`${i*0.05}s`, width:"100%", maxWidth:"100%", minWidth:0, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(26,20,14,0.06)", cursor:"pointer" }}
               onClick={()=>setSelectedItem(item)}>
               <div style={{ display:"flex", width:"100%", minWidth:0, overflow:"hidden" }}>
                 <div style={{ flex:1, minWidth:0, padding:"16px 14px 16px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
@@ -545,12 +606,12 @@ export default function CustomerMenu() {
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12 }}>
                     <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
                     {orderingOn ? (
-                    <button type="button" className="add-btn"
-                      onClick={e=>{ e.stopPropagation(); addToCart(item); }}
-                      style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
-                        background: addedId===item.id?"#4caf50":"#1a140e", color:"#fff" }}>
-                      {addedId===item.id?"✓":"+"}
-                    </button>
+                      <button type="button" className="add-btn"
+                        onClick={e=>{ e.stopPropagation(); addToCart(item); }}
+                        style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
+                          background: addedId===item.id?"#4caf50":"#1a140e", color:"#fff" }}>
+                        {addedId===item.id?"✓":"+"}
+                      </button>
                     ) : <span style={{ width:34 }} aria-hidden />}
                   </div>
                 </div>
@@ -604,6 +665,7 @@ export default function CustomerMenu() {
         <CartSheet
           cart={cart}
           tableNumber={tableNum}
+          restaurantId={restaurantId}
           onClose={()=>setShowCart(false)}
           onQtyChange={changeQty}
           paymentEnabled={paymentOn}
