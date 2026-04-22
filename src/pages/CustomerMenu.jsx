@@ -7,10 +7,13 @@ const GS = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body, #root { height: 100%; }
+    html {
+      background: #f5ede6;
+      min-height: 100%;
+    }
     body {
       background: #f5ede6;
-      min-height: 100vh;
+      min-height: 100%;
       font-family: 'DM Sans', sans-serif;
       -webkit-font-smoothing: antialiased;
     }
@@ -527,26 +530,31 @@ export default function CustomerMenu() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
-        <GS />
-        <div className="menu-spinner" aria-hidden />
-        <div style={{ marginTop:16, fontSize:13, color:"#b8907a", fontFamily:"DM Sans" }}>{t.loading}</div>
+      <div style={{ background:"#f5ede6", minHeight:"100vh", width:"100%" }}>
+        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
+          <GS />
+          <div className="menu-spinner" aria-hidden />
+          <div style={{ marginTop:16, fontSize:13, color:"#b8907a", fontFamily:"DM Sans" }}>{t.loading}</div>
+        </div>
       </div>
     );
   }
 
   if (loadError || !restaurant) {
     return (
-      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
-        <GS />
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12", marginBottom:8 }}>{t.loadFailTitle}</div>
-        <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.5 }}>{loadError || t.restaurantNotFound}</div>
+      <div style={{ background:"#f5ede6", minHeight:"100vh", width:"100%" }}>
+        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
+          <GS />
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12", marginBottom:8 }}>{t.loadFailTitle}</div>
+          <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.5 }}>{loadError || t.restaurantNotFound}</div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", position:"relative" }}>
+    <div style={{ background:"#f5ede6", minHeight:"100vh", width:"100%" }}>
+      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", position:"relative" }}>
       <GS />
 
       <header style={{ background:"#fff", padding:"20px 20px 0", position:"sticky", top:0, zIndex:50, boxShadow:"0 1px 0 #e8d5c8" }}>
@@ -682,6 +690,7 @@ export default function CustomerMenu() {
           t={t}
         />
       )}
+      </div>
     </div>
   );
 }
