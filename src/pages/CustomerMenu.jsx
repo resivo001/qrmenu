@@ -110,20 +110,17 @@ const UI = {
     info: "INFO",
     serviceCharge: "SERVICE CHARGE",
     serviceChargeVal: "Service charge: 10%",
-    address: "Address",
-    workingHours: "Working hours",
-    phone: "Phone",
-    email: "Email",
-    website: "Website",
-    instagram: "Instagram",
-    social: "Social media",
-    contact: "Contact",
+    addressLabel: "Address",
+    workingHoursLabel: "Working hours",
+    phoneLabel: "Phone",
+    emailLabel: "Email",
+    websiteLabel: "Website",
+    instagramLabel: "Instagram",
+    socialLabel: "Social media",
+    contactLabel: "Contact",
     back: "Back",
-    viewMenu: "View Menu",
-    allCategories: "All",
     addToOrder: "Add to Order",
     askWaiterOrder: "Ask your waiter to order",
-    closeBtn: "Close",
     viewOrder: "View Order",
     yourOrder: "Your Order",
     tableLabel: "Table",
@@ -144,34 +141,24 @@ const UI = {
     loadFailTitle: "Couldn't load menu",
     restaurantNotFound: "Restaurant not found",
     scanPrompt: "Scan to view our menu · Ask your waiter to order",
-    langAria: "Language",
-    langOptAz: "Azərbaycanca",
-    langOptRu: "Русский",
-    langOptEn: "English",
-    heroPrevSlide: "Previous slide",
-    heroNextSlide: "Next slide",
-    logoAlt: "Logo",
-    openMenuAria: "Open menu",
+    itemsCount: (n) => `${n} items`,
   },
   AZ: {
     digitalMenu: "RƏQƏMSAL MENYU",
     info: "MƏLUMAT",
     serviceCharge: "SERVİS HAQQI",
     serviceChargeVal: "Servis haqqı: 10%",
-    address: "Ünvan",
-    workingHours: "İş vaxtı",
-    phone: "Telefon",
-    email: "E-poçt",
-    website: "Vebsayt",
-    instagram: "Instagram",
-    social: "Sosial şəbəkələr",
-    contact: "Əlaqə",
+    addressLabel: "Ünvan",
+    workingHoursLabel: "İş vaxtı",
+    phoneLabel: "Telefon",
+    emailLabel: "E-poçt",
+    websiteLabel: "Vebsayt",
+    instagramLabel: "Instagram",
+    socialLabel: "Sosial şəbəkələr",
+    contactLabel: "Əlaqə",
     back: "Geri",
-    viewMenu: "Menüyə bax",
-    allCategories: "Hamısı",
     addToOrder: "Sifariş et",
     askWaiterOrder: "Sifariş üçün ofisianta müraciət edin",
-    closeBtn: "Bağla",
     viewOrder: "Sifarişə bax",
     yourOrder: "Sifarişiniz",
     tableLabel: "Masa",
@@ -187,39 +174,29 @@ const UI = {
     orderSentTitle: "Komandaya göndərildi!",
     successBody: "Sifarişiniz mətbəxə göndərildi. Ofisiant tezliklə təsdiqləyəcək.",
     orderErrorGeneric: "Xəta baş verdi. Yenidən cəhd edin.",
-    paymentError: "Ödəniş alınmadı. Yenidən cəhd edin və ya masada ödəyin.",
+    paymentError: "Ödəniş alınmadı. Yenidən cəhd edin.",
     loading: "Yüklənir…",
     loadFailTitle: "Menü yüklənmədi",
     restaurantNotFound: "Restoran tapılmadı",
     scanPrompt: "Menüyə baxmaq üçün skan edin · Ofisiant sifariş alacaq",
-    langAria: "Dil",
-    langOptAz: "Azərbaycanca",
-    langOptRu: "Русский",
-    langOptEn: "English",
-    heroPrevSlide: "Əvvəlki slayd",
-    heroNextSlide: "Növbəti slayd",
-    logoAlt: "Loqo",
-    openMenuAria: "Menyunu aç",
+    itemsCount: (n) => `${n} məhsul`,
   },
   RU: {
     digitalMenu: "ЦИФРОВОЕ МЕНЮ",
     info: "ИНФОРМАЦИЯ",
     serviceCharge: "СЕРВИСНЫЙ СБОР",
     serviceChargeVal: "Сервисный сбор: 10%",
-    address: "Адрес",
-    workingHours: "Часы работы",
-    phone: "Телефон",
-    email: "Эл. почта",
-    website: "Веб-сайт",
-    instagram: "Instagram",
-    social: "Социальные сети",
-    contact: "Контакты",
+    addressLabel: "Адрес",
+    workingHoursLabel: "Часы работы",
+    phoneLabel: "Телефон",
+    emailLabel: "Эл. почта",
+    websiteLabel: "Веб-сайт",
+    instagramLabel: "Instagram",
+    socialLabel: "Социальные сети",
+    contactLabel: "Контакты",
     back: "Назад",
-    viewMenu: "Смотреть меню",
-    allCategories: "Все",
     addToOrder: "Добавить в заказ",
     askWaiterOrder: "Попросите официанта принять заказ",
-    closeBtn: "Закрыть",
     viewOrder: "Посмотреть заказ",
     yourOrder: "Ваш заказ",
     tableLabel: "Стол",
@@ -240,31 +217,22 @@ const UI = {
     loadFailTitle: "Не удалось загрузить меню",
     restaurantNotFound: "Ресторан не найден",
     scanPrompt: "Сканируйте для просмотра меню · Официант примет заказ",
-    langAria: "Язык",
-    langOptAz: "Azərbaycanca",
-    langOptRu: "Русский",
-    langOptEn: "English",
-    heroPrevSlide: "Предыдущий слайд",
-    heroNextSlide: "Следующий слайд",
-    logoAlt: "Логотип",
-    openMenuAria: "Открыть меню",
+    itemsCount: (n) => `${n} позиций`,
   },
 };
 
-function stringsFor(lang) { return UI[lang] || UI.EN; }
 const LANG_FLAG = { AZ: "🇦🇿", RU: "🇷🇺", EN: "🇬🇧" };
-const LANG_MENU_ITEMS = [
-  { code: "AZ", flag: "🇦🇿", labelKey: "langOptAz" },
-  { code: "RU", flag: "🇷🇺", labelKey: "langOptRu" },
-  { code: "EN", flag: "🇬🇧", labelKey: "langOptEn" },
+const LANG_OPTIONS = [
+  { code: "AZ", flag: "🇦🇿", label: "Azərbaycanca" },
+  { code: "RU", flag: "🇷🇺", label: "Русский" },
+  { code: "EN", flag: "🇬🇧", label: "English" },
 ];
 
-function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrapRef, buttonStyle, t }) {
+function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrapRef, buttonStyle }) {
   return (
     <div ref={langMenuWrapRef} style={{ position: "relative" }}>
       <button
         type="button"
-        aria-label={t.langAria}
         aria-haspopup="listbox"
         aria-expanded={langMenuOpen}
         onClick={() => setLangMenuOpen((o) => !o)}
@@ -304,7 +272,7 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
             zIndex: 60,
           }}
         >
-          {LANG_MENU_ITEMS.map(({ code, flag, labelKey }) => (
+          {LANG_OPTIONS.map(({ code, flag, label }) => (
             <button
               key={code}
               type="button"
@@ -333,7 +301,7 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
               <span style={{ fontSize: 18, lineHeight: 1 }} aria-hidden>
                 {flag}
               </span>
-              <span>{t[labelKey]}</span>
+              <span>{label}</span>
             </button>
           ))}
         </div>
@@ -404,7 +372,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
               {item.badge}
             </div>
           )}
-          <button type="button" onClick={onClose} aria-label={t.closeBtn} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
+          <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
         </div>
         <div style={{ padding:"24px 20px 0" }}>
           <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.2, marginBottom:8 }}>{item.name}</div>
@@ -511,7 +479,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"85vh", display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"20px 20px 0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#3d1c12" }}>{t.yourOrder}</div>
-          <button type="button" onClick={onClose} aria-label={t.closeBtn} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#7a4f3a" }}>✕</button>
+          <button type="button" onClick={onClose} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#7a4f3a" }}>✕</button>
         </div>
         <div style={{ fontSize:12, color:"#b8907a", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
 
@@ -704,7 +672,7 @@ export default function CustomerMenu() {
   const { restaurantId, tableNum } = useMemo(() => readUrlContext(), []);
 
   const [lang, setLang] = useState("AZ");
-  const t = useMemo(() => stringsFor(lang), [lang]);
+  const t = useMemo(() => UI[lang] || UI.EN, [lang]);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const langMenuWrapRef = useRef(null);
 
@@ -870,10 +838,12 @@ export default function CustomerMenu() {
   }
 
   const homeInfoRows = [
-    { icon: "📍", label: t.address, val: restaurant?.location },
-    { icon: "🕐", label: t.workingHours, val: restaurant?.working_hours },
-    { icon: "📞", label: t.phone, val: restaurant?.phone },
-    { icon: "✉️", label: t.email, val: restaurant?.contact_email },
+    { icon: "📍", label: t.addressLabel, val: restaurant?.location },
+    { icon: "🕐", label: t.workingHoursLabel, val: restaurant?.working_hours },
+    { icon: "📞", label: t.phoneLabel, val: restaurant?.phone },
+    { icon: "✉️", label: t.emailLabel, val: restaurant?.contact_email },
+    { icon: "🌐", label: t.websiteLabel, val: restaurant?.website },
+    { icon: "📸", label: t.instagramLabel, val: restaurant?.instagram ? String(restaurant.instagram) : null },
   ].filter((r) => r.val);
 
   const heroCarousel =
@@ -928,14 +898,13 @@ export default function CustomerMenu() {
       ))}
       {restaurant?.logo_url && (
         <div style={{ position: "absolute", top: 16, left: 16, width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff" }}>
-          <img src={restaurant.logo_url} alt={t.logoAlt} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src={restaurant.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
       )}
       <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 8, alignItems: "center" }}>
-        <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{}} t={t} />
+        <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{}} />
         <button
           type="button"
-          aria-label={t.openMenuAria}
           onClick={() => setShowInfo(true)}
           style={{
             width: 44,
@@ -958,7 +927,6 @@ export default function CustomerMenu() {
         <>
           <button
             type="button"
-            aria-label={t.heroPrevSlide}
             onClick={() => setHeroIndex((i) => (i - 1 + heroItems.length) % heroItems.length)}
             style={{
               position: "absolute",
@@ -982,7 +950,6 @@ export default function CustomerMenu() {
           </button>
           <button
             type="button"
-            aria-label={t.heroNextSlide}
             onClick={() => setHeroIndex((i) => (i + 1) % heroItems.length)}
             style={{
               position: "absolute",
@@ -1041,17 +1008,16 @@ export default function CustomerMenu() {
                 <div style={{ display: "flex", alignItems: "center", minHeight: 72 }}>
                   {restaurant?.logo_url ? (
                     <div style={{ width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff", border: "1px solid #e8d5c8" }}>
-                      <img src={restaurant.logo_url} alt={t.logoAlt} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      <img src={restaurant.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     </div>
                   ) : (
                     <div style={{ width: 1, height: 1 }} aria-hidden />
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} t={t} />
+                  <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} />
                   <button
                     type="button"
-                    aria-label={t.openMenuAria}
                     onClick={() => setShowInfo(true)}
                     style={{
                       width: 44,
@@ -1229,10 +1195,9 @@ export default function CustomerMenu() {
                 ← {t.back}
               </button>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} t={t} />
+                <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} />
                 <button
                   type="button"
-                  aria-label={t.openMenuAria}
                   onClick={() => setShowInfo(true)}
                   style={{
                     width: 44,
@@ -1361,11 +1326,11 @@ export default function CustomerMenu() {
           <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.4)" }} onClick={() => setShowInfo(false)} />
           <div className="info-sidebar-panel" style={{ position:"absolute", top:0, left:0, width:"85%", maxWidth:340, height:"100%", background:"#fff", overflowY:"auto", display:"flex", flexDirection:"column", boxShadow:"4px 0 24px rgba(61,28,18,0.08)" }}>
             <div style={{ display:"flex", justifyContent:"flex-end", padding:"16px 16px 0" }}>
-              <button type="button" onClick={() => setShowInfo(false)} aria-label={t.closeBtn}
+              <button type="button" onClick={() => setShowInfo(false)}
                 style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, color:"#7a4f3a", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             </div>
 
-            <div style={{ padding:"8px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.contact}</div>
+            <div style={{ padding:"8px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.contactLabel}</div>
             {[
               { icon:"📍", val: restaurant?.location, href: restaurant?.location ? `https://maps.google.com/?q=${encodeURIComponent(restaurant.location)}` : null },
               { icon:"📞", val: restaurant?.phone, href: restaurant?.phone ? `tel:${restaurant.phone}` : null },
@@ -1382,11 +1347,11 @@ export default function CustomerMenu() {
 
             {restaurant?.instagram && (
               <>
-                <div style={{ padding:"16px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.social}</div>
+                <div style={{ padding:"16px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.socialLabel}</div>
                 <a href={`https://instagram.com/${String(restaurant.instagram).replace("@", "")}`} target="_blank" rel="noopener noreferrer"
                   style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", borderBottom:"1px solid #f5f0ea", textDecoration:"none" }}>
                   <span style={{ fontSize:20 }}>📸</span>
-                  <span style={{ flex:1, fontSize:14, color:"#3d1c12" }}>{t.instagram}</span>
+                  <span style={{ flex:1, fontSize:14, color:"#3d1c12" }}>{t.instagramLabel}</span>
                   <span style={{ color:"#b8907a", fontSize:16 }}>→</span>
                 </a>
               </>
