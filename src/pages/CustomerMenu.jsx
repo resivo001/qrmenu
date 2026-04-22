@@ -8,7 +8,16 @@ const GS = () => (
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body, #root { height: 100%; }
-    body { background: #faf8f4; font-family: 'DM Sans', sans-serif; -webkit-font-smoothing: antialiased; }
+    body {
+      background: #f5ede6;
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    #root {
+      background: #f5ede6;
+      min-height: 100vh;
+    }
     ::-webkit-scrollbar { display: none; }
     @keyframes fadeUp   { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
     @keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
@@ -24,7 +33,7 @@ const GS = () => (
     .add-btn:active { transform: scale(0.92); }
     .menu-spinner {
       width: 36px; height: 36px; border-radius: 50%;
-      border: 3px solid #e4dcd0; border-top-color: #1a140e;
+      border: 3px solid #e8d5c8; border-top-color: #8b3a2a;
       animation: spin 0.7s linear infinite;
     }
   `}</style>
@@ -214,43 +223,43 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
   const [qty, setQty] = useState(1);
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(26,20,14,0.5)" }} onClick={onClose} className="fade-in" />
+      <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.55)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"88vh", overflowY:"auto", paddingBottom:32 }}>
-        <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#f5f0e8" }}>
+        <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#f7efe8" }}>
           {item.img ? (
             <div style={{ position:"absolute", inset:0 }}>
               <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
             </div>
           ) : (
-            <div style={{ width:"100%", height:"100%", background:"#f5f0e8" }} />
+            <div style={{ width:"100%", height:"100%", background:"#f7efe8" }} />
           )}
           <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%)" }} />
           {item.badge && (
-            <div style={{ position:"absolute", top:16, left:16, background:"rgba(255,255,255,0.95)", borderRadius:20, padding:"4px 12px", fontSize:11, fontWeight:600, color:"#1a140e" }}>
+            <div style={{ position:"absolute", top:16, left:16, background:"rgba(255,255,255,0.95)", borderRadius:20, padding:"4px 12px", fontSize:11, fontWeight:600, color:"#3d1c12" }}>
               {item.badge}
             </div>
           )}
-          <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#1a140e" }}>✕</button>
+          <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
         </div>
         <div style={{ padding:"24px 20px 0" }}>
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", lineHeight:1.2, marginBottom:8 }}>{item.name}</div>
-          <div style={{ fontSize:14, color:"#8a7d6b", lineHeight:1.6, marginBottom:20 }}>{item.desc}</div>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.2, marginBottom:8 }}>{item.name}</div>
+          <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.6, marginBottom:20 }}>{item.desc}</div>
           {orderingEnabled ? (
             <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-              <div style={{ display:"flex", alignItems:"center", background:"#f5f0e8", borderRadius:28, padding:"4px" }}>
-                <button type="button" onClick={()=>setQty(q=>Math.max(1,q-1))} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:qty===1?"transparent":"#fff", cursor:"pointer", fontSize:18, fontWeight:600, color:"#1a140e", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:qty===1?"none":"0 1px 4px rgba(0,0,0,0.1)" }}>−</button>
-                <span style={{ width:36, textAlign:"center", fontWeight:700, fontSize:16, color:"#1a140e" }}>{qty}</span>
-                <button type="button" onClick={()=>setQty(q=>q+1)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:"#1a140e", cursor:"pointer", fontSize:18, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+              <div style={{ display:"flex", alignItems:"center", background:"#f7efe8", borderRadius:28, padding:"4px" }}>
+                <button type="button" onClick={()=>setQty(q=>Math.max(1,q-1))} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:qty===1?"transparent":"#fff", cursor:"pointer", fontSize:18, fontWeight:600, color:"#3d1c12", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:qty===1?"none":"0 1px 4px rgba(0,0,0,0.1)" }}>−</button>
+                <span style={{ width:36, textAlign:"center", fontWeight:700, fontSize:16, color:"#3d1c12" }}>{qty}</span>
+                <button type="button" onClick={()=>setQty(q=>q+1)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:"#8b3a2a", cursor:"pointer", fontSize:18, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
               </div>
               <button type="button" onClick={()=>{ onAdd(item, qty); onClose(); }}
-                style={{ flex:1, background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                style={{ flex:1, background:"#8b3a2a", color:"#fff", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <span>{t.addToOrder}</span>
-                <span style={{ fontWeight:700 }}>{fmt(item.price * qty)}</span>
+                <span style={{ fontWeight:700, color:"#d4956a" }}>{fmt(item.price * qty)}</span>
               </button>
             </div>
           ) : (
-            <div style={{ paddingTop:4, fontSize:13, color:"#a89880", textAlign:"center", lineHeight:1.5 }}>
-              {t.askWaiterOrder} · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
+            <div style={{ paddingTop:4, fontSize:13, color:"#b8907a", textAlign:"center", lineHeight:1.5 }}>
+              {t.askWaiterOrder} · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#3d1c12" }}>{fmt(item.price)}</span>
             </div>
           )}
         </div>
@@ -319,57 +328,57 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
   const busy = placing || paying;
 
   if (placed) return (
-    <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(26,20,14,0.6)" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(61,28,18,0.6)" }}>
       <div className="fade-up" style={{ background:"#fff", borderRadius:24, padding:"40px 32px", textAlign:"center", margin:24, maxWidth:320 }}>
         <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#1a140e", marginBottom:8 }}>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", marginBottom:8 }}>
           {canPay ? t.orderPlacedTitle : t.orderSentTitle}
         </div>
-        <div style={{ fontSize:14, color:"#8a7d6b", marginBottom:24, lineHeight:1.5 }}>{t.successBody}</div>
-        <div style={{ fontSize:13, color:"#a89880", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
+        <div style={{ fontSize:14, color:"#7a4f3a", marginBottom:24, lineHeight:1.5 }}>{t.successBody}</div>
+        <div style={{ fontSize:13, color:"#b8907a", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
       </div>
     </div>
   );
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(26,20,14,0.5)" }} onClick={onClose} className="fade-in" />
+      <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.55)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"85vh", display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"20px 20px 0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#1a140e" }}>{t.yourOrder}</div>
-          <button type="button" onClick={onClose} style={{ background:"#f5f0e8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#8a7d6b" }}>✕</button>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#3d1c12" }}>{t.yourOrder}</div>
+          <button type="button" onClick={onClose} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#7a4f3a" }}>✕</button>
         </div>
-        <div style={{ fontSize:12, color:"#a89880", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
+        <div style={{ fontSize:12, color:"#b8907a", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
 
         <div style={{ overflowY:"auto", flex:1, padding:"0 20px" }}>
           {cart.map(item=>(
-            <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f5f0e8" }}>
+            <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f7efe8" }}>
               {item.img ? (
-                <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f5f0e8" }}>
+                <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
                   <img src={item.img} alt="" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
               ) : (
-                <div style={{ width:52, height:52, borderRadius:10, background:"#f5f0e8", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:10, background:"#f7efe8", flexShrink:0 }} />
               )}
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:600, color:"#1a140e", marginBottom:4 }}>{item.name}</div>
-                <div style={{ fontSize:14, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</div>
+                <div style={{ fontSize:14, fontWeight:600, color:"#3d1c12", marginBottom:4 }}>{item.name}</div>
+                <div style={{ fontSize:14, fontWeight:700, color:"#3d1c12" }}>{fmt(item.price)}</div>
               </div>
-              <div style={{ display:"flex", alignItems:"center", background:"#f5f0e8", borderRadius:24, padding:"3px" }}>
-                <button type="button" onClick={()=>onQtyChange(item.id, item.qty-1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:item.qty===1?"transparent":"#fff", cursor:"pointer", fontSize:15, color:"#1a140e", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ display:"flex", alignItems:"center", background:"#f7efe8", borderRadius:24, padding:"3px" }}>
+                <button type="button" onClick={()=>onQtyChange(item.id, item.qty-1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:item.qty===1?"transparent":"#fff", cursor:"pointer", fontSize:15, color:"#3d1c12", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {item.qty===1?"🗑":"−"}
                 </button>
-                <span style={{ width:28, textAlign:"center", fontSize:14, fontWeight:700, color:"#1a140e" }}>{item.qty}</span>
-                <button type="button" onClick={()=>onQtyChange(item.id, item.qty+1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:"#1a140e", cursor:"pointer", fontSize:15, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                <span style={{ width:28, textAlign:"center", fontSize:14, fontWeight:700, color:"#3d1c12" }}>{item.qty}</span>
+                <button type="button" onClick={()=>onQtyChange(item.id, item.qty+1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:"#8b3a2a", cursor:"pointer", fontSize:15, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
               </div>
             </div>
           ))}
         </div>
 
-        <div style={{ padding:"16px 20px 32px", borderTop:"1px solid #f5f0e8" }}>
+        <div style={{ padding:"16px 20px 32px", borderTop:"1px solid #f7efe8" }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-            <span style={{ fontSize:14, color:"#8a7d6b" }}>{t.total}</span>
-            <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#1a140e" }}>{fmt(total)}</span>
+            <span style={{ fontSize:14, color:"#7a4f3a" }}>{t.total}</span>
+            <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#3d1c12" }}>{fmt(total)}</span>
           </div>
 
           {orderError && (
@@ -384,7 +393,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
               type="button"
               disabled={busy}
               onClick={()=>void handlePayment()}
-              style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:busy?"wait":"pointer", fontFamily:"DM Sans", opacity:busy?0.85:1, marginBottom:10 }}>
+              style={{ width:"100%", background:"#8b3a2a", color:"#fff", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:busy?"wait":"pointer", fontFamily:"DM Sans", opacity:busy?0.85:1, marginBottom:10 }}>
               {paying ? t.payingSubtitle : t.payNowBtn}
             </button>
           )}
@@ -396,9 +405,9 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             onClick={()=>void handleWaiterOrder()}
             style={{
               width:"100%",
-              background: canPay ? "transparent" : "#1a140e",
-              color: canPay ? "#8a7d6b" : "#faf8f4",
-              border: canPay ? "1px solid #e4dcd0" : "none",
+              background: canPay ? "transparent" : "#8b3a2a",
+              color: canPay ? "#7a4f3a" : "#fff",
+              border: canPay ? "1px solid #e8d5c8" : "none",
               borderRadius:28,
               padding:"16px",
               fontSize: canPay ? 13 : 15,
@@ -410,7 +419,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             {placing ? t.sending : (canPay ? t.sendWaiterBtn : t.placeOrderBtn)}
           </button>
 
-          <div style={{ textAlign:"center", fontSize:12, color:"#c4b8a8", marginTop:10 }}>
+          <div style={{ textAlign:"center", fontSize:12, color:"#b8907a", marginTop:10 }}>
             {canPay ? t.paymentSubtitle : t.waiterSubtitle}
           </div>
         </div>
@@ -518,35 +527,35 @@ export default function CustomerMenu() {
 
   if (loading) {
     return (
-      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#faf8f4", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
+      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
         <GS />
         <div className="menu-spinner" aria-hidden />
-        <div style={{ marginTop:16, fontSize:13, color:"#a89880", fontFamily:"DM Sans" }}>{t.loading}</div>
+        <div style={{ marginTop:16, fontSize:13, color:"#b8907a", fontFamily:"DM Sans" }}>{t.loading}</div>
       </div>
     );
   }
 
   if (loadError || !restaurant) {
     return (
-      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#faf8f4", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
+      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
         <GS />
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#1a140e", marginBottom:8 }}>{t.loadFailTitle}</div>
-        <div style={{ fontSize:14, color:"#8a7d6b", lineHeight:1.5 }}>{loadError || t.restaurantNotFound}</div>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12", marginBottom:8 }}>{t.loadFailTitle}</div>
+        <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.5 }}>{loadError || t.restaurantNotFound}</div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#faf8f4", display:"flex", flexDirection:"column", position:"relative" }}>
+    <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", position:"relative" }}>
       <GS />
 
-      <header style={{ background:"#fff", padding:"20px 20px 0", position:"sticky", top:0, zIndex:50, boxShadow:"0 1px 0 #f0ebe4" }}>
+      <header style={{ background:"#fff", padding:"20px 20px 0", position:"sticky", top:0, zIndex:50, boxShadow:"0 1px 0 #e8d5c8" }}>
         <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:16 }}>
           <div>
-            <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#1a140e", lineHeight:1.1 }}>{restaurant.name}</div>
-            {tagline ? <div style={{ fontSize:12, color:"#a89880", marginTop:3 }}>{tagline}</div> : null}
+            <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#3d1c12", lineHeight:1.1 }}>{restaurant.name}</div>
+            {tagline ? <div style={{ fontSize:12, color:"#b8907a", marginTop:3 }}>{tagline}</div> : null}
             {orderingOn ? (
-              <div style={{ fontSize:11, color:"#a89880", marginTop:4, fontFamily:"DM Mono, monospace", letterSpacing:"0.02em" }}>
+              <div style={{ fontSize:11, color:"#b8907a", marginTop:4, fontFamily:"DM Mono, monospace", letterSpacing:"0.02em" }}>
                 {t.tableLabel} {tableNum}
               </div>
             ) : null}
@@ -554,16 +563,16 @@ export default function CustomerMenu() {
           <div ref={langMenuWrapRef} style={{ position:"relative", marginTop:4, flexShrink:0 }}>
             <button type="button" aria-label="Language" aria-haspopup="listbox" aria-expanded={langMenuOpen}
               onClick={() => setLangMenuOpen((o) => !o)}
-              style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:36, padding:0, borderRadius:20, border:"1px solid #e4dcd0", background:"#fff", cursor:"pointer", fontSize:22, lineHeight:1 }}>
+              style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:36, padding:0, borderRadius:20, border:"1px solid #e8d5c8", background:"#fff", cursor:"pointer", fontSize:22, lineHeight:1 }}>
               {LANG_FLAG[lang] || LANG_FLAG.AZ}
             </button>
             {langMenuOpen ? (
               <div role="listbox"
-                style={{ position:"absolute", top:"100%", right:0, marginTop:6, minWidth:188, background:"#fff", border:"1px solid #e4dcd0", borderRadius:12, boxShadow:"0 8px 24px rgba(26,20,14,0.08)", padding:"6px 0", zIndex:60 }}>
+                style={{ position:"absolute", top:"100%", right:0, marginTop:6, minWidth:188, background:"#fff", border:"1px solid #e8d5c8", borderRadius:12, boxShadow:"0 8px 24px rgba(61,28,18,0.1)", padding:"6px 0", zIndex:60 }}>
                 {LANG_OPTIONS.map(({ code, flag, label }) => (
                   <button key={code} type="button" role="option" aria-selected={lang === code}
                     onClick={() => { setLang(code); setLangMenuOpen(false); }}
-                    style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px", border:"none", background:"transparent", cursor:"pointer", fontFamily:"DM Sans, sans-serif", fontSize:13, fontWeight:500, color:"#1a140e", textAlign:"left" }}>
+                    style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px", border:"none", background:"transparent", cursor:"pointer", fontFamily:"DM Sans, sans-serif", fontSize:13, fontWeight:500, color:"#3d1c12", textAlign:"left" }}>
                     <span style={{ fontSize:18, lineHeight:1 }} aria-hidden>{flag}</span>
                     <span>{label}</span>
                   </button>
@@ -576,8 +585,8 @@ export default function CustomerMenu() {
           {cats.map(cat=>(
             <button type="button" key={cat.id} className="cat-btn" onClick={()=>setActiveCat(cat.id)}
               style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:24, border:"none", cursor:"pointer", fontFamily:"DM Sans", fontSize:13, fontWeight:500, flexShrink:0,
-                background: activeCat===cat.id?"#1a140e":"#f5f0e8",
-                color:      activeCat===cat.id?"#faf8f4":"#8a7d6b",
+                background: activeCat===cat.id?"#8b3a2a":"#f7efe8",
+                color:      activeCat===cat.id?"#fff":"#7a4f3a",
               }}>
               <span style={{ fontSize:15 }}>{cat.icon}</span>
               <span>{cat.name}</span>
@@ -590,26 +599,26 @@ export default function CustomerMenu() {
         <div style={{ display:"flex", flexDirection:"column", gap:12, minWidth:0, width:"100%" }}>
           {filtered.map((item, i) => (
             <div key={item.id} className="item-card fade-up"
-              style={{ animationDelay:`${i*0.05}s`, width:"100%", maxWidth:"100%", minWidth:0, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(26,20,14,0.06)", cursor:"pointer" }}
+              style={{ animationDelay:`${i*0.05}s`, width:"100%", maxWidth:"100%", minWidth:0, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(61,28,18,0.07)", cursor:"pointer" }}
               onClick={()=>setSelectedItem(item)}>
               <div style={{ display:"flex", width:"100%", minWidth:0, overflow:"hidden" }}>
                 <div style={{ flex:1, minWidth:0, padding:"16px 14px 16px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
                   <div>
                     {item.badge && (
-                      <div style={{ display:"inline-block", fontSize:10, fontWeight:600, color:"#8a7d6b", background:"#f5f0e8", borderRadius:20, padding:"2px 8px", marginBottom:6 }}>
+                      <div style={{ display:"inline-block", fontSize:10, fontWeight:600, color:"#d4956a", background:"#f7efe8", borderRadius:20, padding:"2px 8px", marginBottom:6 }}>
                         {item.badge}
                       </div>
                     )}
-                    <div style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:600, color:"#1a140e", lineHeight:1.25, marginBottom:6 }}>{item.name}</div>
-                    <div style={{ fontSize:12, color:"#a89880", lineHeight:1.5, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{item.desc}</div>
+                    <div style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:600, color:"#3d1c12", lineHeight:1.25, marginBottom:6 }}>{item.name}</div>
+                    <div style={{ fontSize:12, color:"#7a4f3a", lineHeight:1.5, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{item.desc}</div>
                   </div>
                   <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12 }}>
-                    <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#1a140e" }}>{fmt(item.price)}</span>
+                    <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#d4956a" }}>{fmt(item.price)}</span>
                     {orderingOn ? (
                       <button type="button" className="add-btn"
                         onClick={e=>{ e.stopPropagation(); addToCart(item); }}
                         style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
-                          background: addedId===item.id?"#4caf50":"#1a140e", color:"#fff" }}>
+                          background: addedId===item.id?"#4caf50":"#8b3a2a", color:"#fff" }}>
                         {addedId===item.id?"✓":"+"}
                       </button>
                     ) : <span style={{ width:34 }} aria-hidden />}
@@ -619,7 +628,7 @@ export default function CustomerMenu() {
                   {item.img ? (
                     <img src={item.img} alt={item.name} style={{ width:120, height:120, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                   ) : (
-                    <div style={{ width:120, height:120, background:"#f5f0e8", flexShrink:0 }} />
+                    <div style={{ width:120, height:120, background:"#f7efe8", flexShrink:0 }} />
                   )}
                 </div>
               </div>
@@ -631,20 +640,20 @@ export default function CustomerMenu() {
       {orderingOn && cartCount > 0 && (
         <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", width:"calc(100% - 32px)", maxWidth:448, zIndex:100 }}>
           <button type="button" onClick={()=>setShowCart(true)}
-            style={{ width:"100%", background:"#1a140e", color:"#faf8f4", border:"none", borderRadius:28, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontFamily:"DM Sans", boxShadow:"0 8px 32px rgba(26,20,14,0.25)" }}>
+            style={{ width:"100%", background:"#8b3a2a", color:"#fff", border:"none", borderRadius:28, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontFamily:"DM Sans", boxShadow:"0 8px 32px rgba(139,58,42,0.28)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ background:"#c9a96e", borderRadius:"50%", width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#1a140e" }}>{cartCount}</div>
+              <div style={{ background:"#d4956a", borderRadius:"50%", width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff" }}>{cartCount}</div>
               <span style={{ fontSize:14, fontWeight:600 }}>{t.viewOrder}</span>
             </div>
-            <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#c9a96e" }}>{fmt(cartTotal)}</span>
+            <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#d4956a" }}>{fmt(cartTotal)}</span>
           </button>
         </div>
       )}
 
       {!orderingOn && (
         <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:90, display:"flex", justifyContent:"center", pointerEvents:"none" }}>
-          <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(250,248,244,0.98) 60%, transparent)" }}>
-            <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#a89880", letterSpacing:"0.02em", lineHeight:1.5 }}>
+          <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(245,237,230,0.98) 60%, transparent)" }}>
+            <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#b8907a", letterSpacing:"0.02em", lineHeight:1.5 }}>
               {t.scanPrompt}
             </div>
           </div>
