@@ -431,6 +431,42 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
   );
 }
 
+function CompactCard({ item, orderingOn, addedId, onAdd, onOpen }) {
+  return (
+    <div
+      onClick={() => onOpen(item)}
+      style={{ background:"#fff", borderRadius:14, overflow:"hidden", boxShadow:"0 1px 6px rgba(61,28,18,0.07)", cursor:"pointer", display:"flex", flexDirection:"column", transition:"transform 0.15s ease" }}
+    >
+      <div style={{ width:"100%", aspectRatio:"4/3", background:"#f7efe8", overflow:"hidden", position:"relative" }}>
+        {item.img ? (
+          <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.background = "#f7efe8"; }} />
+        ) : (
+          <div style={{ width:"100%", height:"100%", background:"#f7efe8", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }} />
+        )}
+        {item.badge && (
+          <div style={{ position:"absolute", top:6, left:6, background:"#d4956a", color:"#fff", fontSize:9, fontWeight:700, borderRadius:20, padding:"2px 7px" }}>{item.badge}</div>
+        )}
+      </div>
+      <div style={{ padding:"10px 10px 8px", flex:1, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:15, fontWeight:600, color:"#3d1c12", lineHeight:1.25, marginBottom:6, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+          {item.name}
+        </div>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"auto" }}>
+          <span style={{ fontFamily:"Cormorant Garamond", fontSize:17, fontWeight:700, color:"#d4956a" }}>₼{Number(item.price).toFixed(2)}</span>
+          {orderingOn && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onAdd(item); }}
+              style={{ width:28, height:28, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", background: addedId === item.id ? "#4caf50" : "#8b3a2a", color:"#fff", flexShrink:0, transition:"background 0.15s" }}>
+              {addedId === item.id ? "✓" : "+"}
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function CustomerMenu() {
   const { restaurantId, tableNum } = useMemo(() => readUrlContext(), []);
 
@@ -486,6 +522,24 @@ export default function CustomerMenu() {
     return () => { cancelled = true; };
   }, [restaurantId]);
 
+  useEffect(() => {
+    if (!cats.length) return undefined;
+    const observers = [];
+    cats.forEach((cat) => {
+      const el = document.getElementById(`cat-${cat.id}`);
+      if (!el) return;
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveCat(cat.id);
+        },
+        { threshold: 0.2, rootMargin: "-80px 0px -60% 0px" }
+      );
+      obs.observe(el);
+      observers.push(obs);
+    });
+    return () => observers.forEach((o) => o.disconnect());
+  }, [cats]);
+
   const addToCart = (item, qty=1) => {
     setCart(prev => {
       const ex = prev.find(i=>i.id===item.id);
@@ -525,8 +579,10 @@ export default function CustomerMenu() {
   const orderingOn = features.ordering === true;
   const paymentOn = features.payment === true;
   const bottomPad = orderingOn ? 120 : 72;
-  const filtered = items.filter((i) => i.cat === activeCat);
   const tagline = restaurant?.location || restaurant?.tagline || "";
+  const grouped = cats
+    .map((cat) => ({ cat, items: items.filter((i) => i.cat === cat.id) }))
+    .filter((g) => g.items.length > 0);
 
   if (loading) {
     return (
@@ -591,7 +647,11 @@ export default function CustomerMenu() {
         </div>
         <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:16, scrollbarWidth:"none" }}>
           {cats.map(cat=>(
-            <button type="button" key={cat.id} className="cat-btn" onClick={()=>setActiveCat(cat.id)}
+            <button type="button" key={cat.id} className="cat-btn" onClick={() => {
+              setActiveCat(cat.id);
+              const el = document.getElementById(`cat-${cat.id}`);
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
               style={{ display:"flex", alignItems:"center", gap:6, padding:"8px 16px", borderRadius:24, border:"none", cursor:"pointer", fontFamily:"DM Sans", fontSize:13, fontWeight:500, flexShrink:0,
                 background: activeCat===cat.id?"#8b3a2a":"#f7efe8",
                 color:      activeCat===cat.id?"#fff":"#7a4f3a",
@@ -603,46 +663,21 @@ export default function CustomerMenu() {
         </div>
       </header>
 
-      <div style={{ flex:1, padding:`16px 16px ${bottomPad}px` }}>
-        <div style={{ display:"flex", flexDirection:"column", gap:12, minWidth:0, width:"100%" }}>
-          {filtered.map((item, i) => (
-            <div key={item.id} className="item-card fade-up"
-              style={{ animationDelay:`${i*0.05}s`, width:"100%", maxWidth:"100%", minWidth:0, background:"#fff", borderRadius:18, overflow:"hidden", boxShadow:"0 1px 8px rgba(61,28,18,0.07)", cursor:"pointer" }}
-              onClick={()=>setSelectedItem(item)}>
-              <div style={{ display:"flex", width:"100%", minWidth:0, overflow:"hidden" }}>
-                <div style={{ flex:1, minWidth:0, padding:"16px 14px 16px 16px", display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
-                  <div>
-                    {item.badge && (
-                      <div style={{ display:"inline-block", fontSize:10, fontWeight:600, color:"#d4956a", background:"#f7efe8", borderRadius:20, padding:"2px 8px", marginBottom:6 }}>
-                        {item.badge}
-                      </div>
-                    )}
-                    <div style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:600, color:"#3d1c12", lineHeight:1.25, marginBottom:6 }}>{item.name}</div>
-                    <div style={{ fontSize:12, color:"#7a4f3a", lineHeight:1.5, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>{item.desc}</div>
-                  </div>
-                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:12 }}>
-                    <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#d4956a" }}>{fmt(item.price)}</span>
-                    {orderingOn ? (
-                      <button type="button" className="add-btn"
-                        onClick={e=>{ e.stopPropagation(); addToCart(item); }}
-                        style={{ width:34, height:34, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:18, display:"flex", alignItems:"center", justifyContent:"center", transition:"all 0.15s",
-                          background: addedId===item.id?"#4caf50":"#8b3a2a", color:"#fff" }}>
-                        {addedId===item.id?"✓":"+"}
-                      </button>
-                    ) : <span style={{ width:34 }} aria-hidden />}
-                  </div>
-                </div>
-                <div style={{ flex:"0 0 120px", width:120, height:120, flexShrink:0, overflow:"hidden" }}>
-                  {item.img ? (
-                    <img src={item.img} alt={item.name} style={{ width:120, height:120, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
-                  ) : (
-                    <div style={{ width:120, height:120, background:"#f7efe8", flexShrink:0 }} />
-                  )}
-                </div>
-              </div>
+      <div style={{ flex:1, padding:`12px 12px ${bottomPad}px` }}>
+        {grouped.map(({ cat, items: catItems }) => (
+          <div key={cat.id} id={`cat-${cat.id}`} style={{ marginBottom:24, scrollMarginTop:"80px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, paddingTop:4 }}>
+              <span style={{ fontSize:18 }}>{cat.icon}</span>
+              <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#3d1c12" }}>{cat.name}</span>
+              <span style={{ fontSize:11, color:"#b8907a", fontFamily:"DM Mono" }}>({catItems.length})</span>
             </div>
-          ))}
-        </div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {catItems.map((item) => (
+                <CompactCard key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
 
       {orderingOn && cartCount > 0 && (
