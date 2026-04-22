@@ -5,7 +5,7 @@ const DEFAULT_RESTAURANT_ID = "ac4e5a27-a9dd-46cf-b6c9-45469c1aaa7b";
 
 const GS = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html {
       background: #f5ede6;
@@ -38,6 +38,13 @@ const GS = () => (
       width: 36px; height: 36px; border-radius: 50%;
       border: 3px solid #e8d5c8; border-top-color: #8b3a2a;
       animation: spin 0.7s linear infinite;
+    }
+    @keyframes slideFromLeft {
+      from { transform: translateX(-100%); }
+      to { transform: translateX(0); }
+    }
+    .info-sidebar-panel {
+      animation: slideFromLeft 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
     }
   `}</style>
 );
@@ -116,6 +123,15 @@ const UI = {
     askWaiterOrder: "Ask your waiter to order",
     sending: "Sending…",
     tableLabel: "Table",
+    back: "Back",
+    digitalMenuTitle: "DIGITAL MENU",
+    infoTitle: "INFORMATION",
+    serviceChargeTitle: "SERVICE CHARGE",
+    serviceChargeBody: "Service charge: 10%",
+    addressLabel: "Address",
+    workingHoursLabel: "Hours",
+    phoneLabel: "Phone",
+    emailLabel: "Email",
     loading: "Loading…",
     loadFailTitle: "Couldn't load menu",
     restaurantNotFound: "Restaurant not found",
@@ -140,6 +156,15 @@ const UI = {
     askWaiterOrder: "Sifariş üçün ofisianta müraciət edin",
     sending: "Göndərilir…",
     tableLabel: "Masa",
+    back: "Geri",
+    digitalMenuTitle: "RƏQƏMSAL MENYU",
+    infoTitle: "MƏLUMAT",
+    serviceChargeTitle: "SERVİS HAQQI",
+    serviceChargeBody: "SERVİS HAQQI 10%",
+    addressLabel: "Ünvan",
+    workingHoursLabel: "İş vaxtı",
+    phoneLabel: "Telefon",
+    emailLabel: "Email",
     loading: "Yüklənir…",
     loadFailTitle: "Menü yüklənmədi",
     restaurantNotFound: "Restoran tapılmadı",
@@ -164,6 +189,15 @@ const UI = {
     askWaiterOrder: "Попросите официанта принять заказ",
     sending: "Отправка…",
     tableLabel: "Стол",
+    back: "Назад",
+    digitalMenuTitle: "ЦИФРОВОЕ МЕНЮ",
+    infoTitle: "ИНФОРМАЦИЯ",
+    serviceChargeTitle: "СЕРВИСНЫЙ СБОР",
+    serviceChargeBody: "Сервисный сбор: 10%",
+    addressLabel: "Адрес",
+    workingHoursLabel: "Часы работы",
+    phoneLabel: "Телефон",
+    emailLabel: "Email",
     loading: "Загрузка…",
     loadFailTitle: "Не удалось загрузить меню",
     restaurantNotFound: "Ресторан не найден",
@@ -179,6 +213,89 @@ const LANG_OPTIONS = [
   { code: "RU", flag: "🇷🇺", label: "Русский" },
   { code: "EN", flag: "🇬🇧", label: "English" },
 ];
+
+function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrapRef, buttonStyle }) {
+  return (
+    <div ref={langMenuWrapRef} style={{ position: "relative" }}>
+      <button
+        type="button"
+        aria-label="Language"
+        aria-haspopup="listbox"
+        aria-expanded={langMenuOpen}
+        onClick={() => setLangMenuOpen((o) => !o)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 44,
+          height: 44,
+          padding: 0,
+          borderRadius: 12,
+          border: "1px solid #e8d5c8",
+          background: "rgba(255,255,255,0.92)",
+          cursor: "pointer",
+          fontSize: 22,
+          lineHeight: 1,
+          color: "#3d1c12",
+          ...buttonStyle,
+        }}
+      >
+        {LANG_FLAG[lang] || LANG_FLAG.AZ}
+      </button>
+      {langMenuOpen ? (
+        <div
+          role="listbox"
+          style={{
+            position: "absolute",
+            top: "100%",
+            right: 0,
+            marginTop: 6,
+            minWidth: 188,
+            background: "#fff",
+            border: "1px solid #e8d5c8",
+            borderRadius: 12,
+            boxShadow: "0 8px 24px rgba(61,28,18,0.1)",
+            padding: "6px 0",
+            zIndex: 60,
+          }}
+        >
+          {LANG_OPTIONS.map(({ code, flag, label }) => (
+            <button
+              key={code}
+              type="button"
+              role="option"
+              aria-selected={lang === code}
+              onClick={() => {
+                setLang(code);
+                setLangMenuOpen(false);
+              }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                width: "100%",
+                padding: "10px 14px",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                fontFamily: "DM Sans, sans-serif",
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#3d1c12",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ fontSize: 18, lineHeight: 1 }} aria-hidden>
+                {flag}
+              </span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
 
 function normalizeFeatures(row) {
   const f = row?.features;
@@ -433,36 +550,106 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
 
 function ItemRow({ item, orderingOn, addedId, onAdd, onOpen }) {
   return (
-    <div onClick={() => onOpen(item)}
-      style={{ display:"flex", alignItems:"flex-start", gap:16, padding:"18px 0", borderBottom:"1px solid #f0e6dc", cursor:"pointer" }}>
-      <div style={{ flex:1, minWidth:0, display:"flex", flexDirection:"column", alignItems:"center", textAlign:"center", paddingRight:4 }}>
+    <div
+      onClick={() => onOpen(item)}
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 14,
+        padding: "18px 16px",
+        borderBottom: "1px dashed #e8d5c8",
+        cursor: "pointer",
+        background: "#fff",
+      }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
         {item.badge && (
-          <div style={{ fontSize:10, fontWeight:700, color:"#8b3a2a", background:"#f7efe8", borderRadius:20, padding:"2px 8px", marginBottom:6 }}>{item.badge}</div>
+          <div
+            style={{
+              display: "inline-block",
+              fontSize: 10,
+              fontWeight: 700,
+              color: "#8b3a2a",
+              background: "#f7efe8",
+              borderRadius: 20,
+              padding: "2px 8px",
+              marginBottom: 6,
+            }}
+          >
+            {item.badge}
+          </div>
         )}
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#3d1c12", lineHeight:1.3, marginBottom:6 }}>
+        <div
+          style={{
+            fontFamily: "DM Sans",
+            fontSize: 15,
+            fontWeight: 800,
+            color: "#3d1c12",
+            lineHeight: 1.3,
+            marginBottom: 6,
+            textTransform: "uppercase",
+            letterSpacing: "0.02em",
+          }}
+        >
           {item.name}
         </div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#8b3a2a", marginBottom: 6, fontFamily: "DM Mono" }}>
+          ₼{Number(item.price).toFixed(2)}
+        </div>
         {item.desc && (
-          <div style={{ fontSize:12, color:"#b8907a", lineHeight:1.55, display:"-webkit-box", WebkitLineClamp:3, WebkitBoxOrient:"vertical", overflow:"hidden", marginBottom:8 }}>
+          <div
+            style={{
+              fontSize: 13,
+              color: "#7a4f3a",
+              lineHeight: 1.6,
+              display: "-webkit-box",
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: "vertical",
+              overflow: "hidden",
+            }}
+          >
             {item.desc}
           </div>
         )}
-        <div style={{ display:"flex", alignItems:"center", gap:12, marginTop:"auto" }}>
-          <span style={{ fontSize:17, fontWeight:700, color:"#d4956a", fontFamily:"Cormorant Garamond" }}>
-            ₼{Number(item.price).toFixed(2)}
-          </span>
-          {orderingOn && (
-            <button type="button" onClick={(e) => { e.stopPropagation(); onAdd(item); }}
-              style={{ width:28, height:28, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:15, display:"flex", alignItems:"center", justifyContent:"center", background: addedId === item.id ? "#4caf50" : "#8b3a2a", color:"#fff", transition:"background 0.15s" }}>
-              {addedId === item.id ? "✓" : "+"}
-            </button>
-          )}
-        </div>
+        {orderingOn && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdd(item);
+            }}
+            style={{
+              marginTop: 10,
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              border: "1.5px solid #e8d5c8",
+              cursor: "pointer",
+              fontSize: 18,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: addedId === item.id ? "#4caf50" : "#fff",
+              color: addedId === item.id ? "#fff" : "#3d1c12",
+              transition: "all 0.15s",
+            }}
+          >
+            {addedId === item.id ? "✓" : "+"}
+          </button>
+        )}
       </div>
-      <div style={{ width:110, height:110, borderRadius:14, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
-        {item.img
-          ? <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.background = "#f7efe8"; e.target.style.display = "none"; }} />
-          : null}
+      <div style={{ width: 110, height: 110, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#f7efe8" }}>
+        {item.img ? (
+          <img
+            src={item.img}
+            alt={item.name}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            onError={(e) => {
+              e.target.parentElement.style.background = "#f7efe8";
+              e.target.style.display = "none";
+            }}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -497,18 +684,33 @@ export default function CustomerMenu() {
   const [showCart, setShowCart] = useState(false);
   const [addedId, setAddedId] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
+  const [view, setView] = useState("home");
   const [heroIndex, setHeroIndex] = useState(0);
   const heroTouchStartX = useRef(null);
 
-  const heroItems = useMemo(() => items.filter((i) => i.img).slice(0, 5), [items]);
+  const heroItems = useMemo(() => items.filter((i) => i.img).slice(0, 6), [items]);
   const heroSlideIndex = heroItems.length === 0 ? 0 : heroIndex % heroItems.length;
 
   useEffect(() => {
     if (heroItems.length < 2) return undefined;
     const n = heroItems.length;
-    const t = setInterval(() => setHeroIndex((i) => (i + 1) % n), 3000);
-    return () => clearInterval(t);
+    const tick = setInterval(() => setHeroIndex((i) => (i + 1) % n), 3500);
+    return () => clearInterval(tick);
   }, [heroItems.length]);
+
+  useEffect(() => {
+    if (view !== "menu") return undefined;
+    const id = window.setTimeout(() => {
+      document.getElementById(`cat-${activeCat}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+    return () => clearTimeout(id);
+    // Intentionally only when `view` becomes "menu"; `activeCat` is taken from the same render as the navigation that opened the menu.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view]);
+
+  useEffect(() => {
+    setLangMenuOpen(false);
+  }, [view]);
 
   useEffect(() => {
     let cancelled = false;
@@ -537,7 +739,7 @@ export default function CustomerMenu() {
   }, [restaurantId]);
 
   useEffect(() => {
-    if (!cats.length) return undefined;
+    if (view !== "menu" || !cats.length) return undefined;
     const observers = [];
     cats.forEach((cat) => {
       const el = document.getElementById(`cat-${cat.id}`);
@@ -552,7 +754,7 @@ export default function CustomerMenu() {
       observers.push(obs);
     });
     return () => observers.forEach((o) => o.disconnect());
-  }, [cats]);
+  }, [cats, view]);
 
   const addToCart = (item, qty=1) => {
     setCart(prev => {
@@ -622,122 +824,444 @@ export default function CustomerMenu() {
     );
   }
 
-  return (
-    <div style={{ background:"#f5ede6", minHeight:"100vh", width:"100%" }}>
-      <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", position:"relative" }}>
-      <GS />
+  const homeInfoRows = [
+    { icon: "📍", label: t.addressLabel, val: restaurant?.location },
+    { icon: "🕐", label: t.workingHoursLabel, val: restaurant?.working_hours },
+    { icon: "📞", label: t.phoneLabel, val: restaurant?.phone },
+    { icon: "✉️", label: t.emailLabel, val: restaurant?.contact_email },
+  ].filter((r) => r.val);
 
-      {heroItems.length > 0 && (
+  const heroCarousel =
+    heroItems.length > 0 ? (
+    <div
+      style={{ position: "relative", width: "100%", height: 320, overflow: "hidden", background: "#1a140e", flexShrink: 0, touchAction: "pan-y" }}
+      onTouchStart={(e) => {
+        heroTouchStartX.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        const start = heroTouchStartX.current;
+        heroTouchStartX.current = null;
+        if (start == null || heroItems.length < 2) return;
+        const endX = e.changedTouches[0]?.clientX;
+        if (endX == null) return;
+        const d = endX - start;
+        if (Math.abs(d) < 48) return;
+        if (d > 0) setHeroIndex((i) => (i - 1 + heroItems.length) % heroItems.length);
+        else setHeroIndex((i) => (i + 1) % heroItems.length);
+      }}
+    >
+      {heroItems.map((item, i) => (
         <div
-          style={{ position:"relative", width:"100%", height:320, overflow:"hidden", background:"#1a140e", flexShrink:0, touchAction:"pan-y" }}
-          onTouchStart={(e) => {
-            heroTouchStartX.current = e.touches[0]?.clientX ?? null;
-          }}
-          onTouchEnd={(e) => {
-            const start = heroTouchStartX.current;
-            heroTouchStartX.current = null;
-            if (start == null || heroItems.length < 2) return;
-            const endX = e.changedTouches[0]?.clientX;
-            if (endX == null) return;
-            const d = endX - start;
-            if (Math.abs(d) < 48) return;
-            if (d > 0) setHeroIndex((i) => (i - 1 + heroItems.length) % heroItems.length);
-            else setHeroIndex((i) => (i + 1) % heroItems.length);
+          key={item.id}
+          style={{
+            position: "absolute",
+            inset: 0,
+            transition: "opacity 0.7s ease",
+            opacity: i === heroSlideIndex ? 1 : 0,
+            pointerEvents: i === heroSlideIndex ? "auto" : "none",
           }}
         >
-          {heroItems.map((item, i) => (
-            <div key={item.id} style={{ position:"absolute", inset:0, transition:"opacity 0.6s ease", opacity: i === heroSlideIndex ? 1 : 0, pointerEvents: i === heroSlideIndex ? "auto" : "none" }}>
-              <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} />
-              <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 50%)" }} />
-              <div style={{ position:"absolute", bottom:16, left:16, background:"rgba(255,255,255,0.92)", borderRadius:20, padding:"5px 14px", display:"flex", alignItems:"center", gap:8 }}>
-                <span style={{ fontSize:12, fontWeight:700, color:"#3d1c12", fontFamily:"DM Sans" }}>{item.name}</span>
-                <span style={{ fontSize:12, fontWeight:700, color:"#d4956a", fontFamily:"Cormorant Garamond" }}>₼{Number(item.price).toFixed(2)}</span>
-              </div>
-            </div>
-          ))}
-          <div style={{ position:"absolute", bottom:16, right:16, display:"flex", gap:5 }}>
-            {heroItems.map((_, i) => (
-              <button key={i} type="button" aria-label={`Slide ${i + 1}`} onClick={() => setHeroIndex(i)}
-                style={{ width: i === heroSlideIndex ? 20 : 6, height:6, borderRadius:3, background: i === heroSlideIndex ? "#fff" : "rgba(255,255,255,0.4)", cursor:"pointer", transition:"all 0.3s", border:"none", padding:0 }} />
-            ))}
+          <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
+          <div
+            style={{
+              position: "absolute",
+              bottom: 20,
+              left: 16,
+              background: "rgba(0,0,0,0.75)",
+              borderRadius: 20,
+              padding: "5px 14px",
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+            }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "DM Sans", letterSpacing: "0.04em", textTransform: "uppercase" }}>{item.name}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#d4956a" }}>₼{Number(item.price).toFixed(2)}</span>
           </div>
-          {restaurant?.logo_url && (
-            <div style={{ position:"absolute", top:16, left:16, width:56, height:56, borderRadius:12, overflow:"hidden", background:"#fff", padding:4 }}>
-              <img src={restaurant.logo_url} alt="logo" style={{ width:"100%", height:"100%", objectFit:"contain" }} />
-            </div>
-          )}
+        </div>
+      ))}
+      {restaurant?.logo_url && (
+        <div style={{ position: "absolute", top: 16, left: 16, width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff" }}>
+          <img src={restaurant.logo_url} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
       )}
-
-      <div style={{ padding:"16px 16px 0", background:"#fff" }}>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.1 }}>{restaurant.name}</div>
-        {tagline ? <div style={{ fontSize:13, color:"#b8907a", marginTop:4 }}>{tagline}</div> : null}
-        {orderingOn && (
-          <div style={{ fontSize:11, color:"#b8907a", marginTop:4, fontFamily:"DM Mono" }}>{t.tableLabel} {tableNum}</div>
-        )}
-      </div>
-
-      <header style={{ background:"#fff", padding:"8px 16px", position:"sticky", top:0, zIndex:50, boxShadow:"0 1px 0 #f0ebe4", display:"flex", justifyContent:"flex-end", alignItems:"center", gap:8 }}>
-        <div ref={langMenuWrapRef} style={{ position:"relative" }}>
-          <button type="button" aria-label="Language" aria-haspopup="listbox" aria-expanded={langMenuOpen}
-            onClick={() => setLangMenuOpen((o) => !o)}
-            style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:36, padding:0, borderRadius:20, border:"1px solid #e8d5c8", background:"#fff", cursor:"pointer", fontSize:22, lineHeight:1 }}>
-            {LANG_FLAG[lang] || LANG_FLAG.AZ}
-          </button>
-          {langMenuOpen ? (
-            <div role="listbox"
-              style={{ position:"absolute", top:"100%", right:0, marginTop:6, minWidth:188, background:"#fff", border:"1px solid #e8d5c8", borderRadius:12, boxShadow:"0 8px 24px rgba(61,28,18,0.1)", padding:"6px 0", zIndex:60 }}>
-              {LANG_OPTIONS.map(({ code, flag, label }) => (
-                <button key={code} type="button" role="option" aria-selected={lang === code}
-                  onClick={() => { setLang(code); setLangMenuOpen(false); }}
-                  style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px", border:"none", background:"transparent", cursor:"pointer", fontFamily:"DM Sans, sans-serif", fontSize:13, fontWeight:500, color:"#3d1c12", textAlign:"left" }}>
-                  <span style={{ fontSize:18, lineHeight:1 }} aria-hidden>{flag}</span>
-                  <span>{label}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <button type="button" onClick={() => setShowInfo(true)}
-          style={{ width:44, height:36, borderRadius:20, border:"1px solid #e8d5c8", background:"#fff", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>
+      <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 8, alignItems: "center" }}>
+        <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{}} />
+        <button
+          type="button"
+          onClick={() => setShowInfo(true)}
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            background: "rgba(255,255,255,0.92)",
+            border: "none",
+            cursor: "pointer",
+            fontSize: 18,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#3d1c12",
+          }}
+        >
           ☰
         </button>
-      </header>
-
-      <div style={{ position:"sticky", top:44, zIndex:49, background:"#fff", borderBottom:"1px solid #e8d5c8", padding:"10px 16px" }}>
-        <div style={{ display:"flex", gap:6, overflowX:"auto", scrollbarWidth:"none" }}>
-          {cats.map((cat) => (
-            <button type="button" key={cat.id} className="cat-btn" onClick={() => {
-              setActiveCat(cat.id);
-              document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior:"smooth", block:"start" });
-            }}
-              style={{ display:"flex", alignItems:"center", gap:6, padding:"7px 14px", borderRadius:24, border:"none", cursor:"pointer", fontFamily:"DM Sans", fontSize:13, fontWeight:500, flexShrink:0,
-                background: activeCat === cat.id ? "#8b3a2a" : "#f7efe8",
-                color: activeCat === cat.id ? "#fff" : "#7a4f3a",
-              }}>
-              <span style={{ fontSize:14 }}>{cat.icon}</span>
-              <span>● {cat.name}</span>
-            </button>
-          ))}
-        </div>
       </div>
+      {heroItems.length > 1 && (
+        <>
+          <button
+            type="button"
+            aria-label="Previous slide"
+            onClick={() => setHeroIndex((i) => (i - 1 + heroItems.length) % heroItems.length)}
+            style={{
+              position: "absolute",
+              left: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: "rgba(0,0,0,0.45)",
+              border: "none",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: 18,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            aria-label="Next slide"
+            onClick={() => setHeroIndex((i) => (i + 1) % heroItems.length)}
+            style={{
+              position: "absolute",
+              right: 10,
+              top: "50%",
+              transform: "translateY(-50%)",
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              background: "rgba(0,0,0,0.45)",
+              border: "none",
+              color: "#fff",
+              cursor: "pointer",
+              fontSize: 18,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            ›
+          </button>
+        </>
+      )}
+    </div>
+    ) : null;
 
-      <div style={{ flex:1, padding:`0 16px ${bottomPad}px` }}>
-        {grouped.map(({ cat, items: catItems }) => (
-          <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop:"100px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"20px 0 4px", borderBottom:"2px solid #e8d5c8", marginBottom:0 }}>
-              <span style={{ fontSize:20 }}>{cat.icon}</span>
-              <span style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12" }}>{cat.name}</span>
-              <span style={{ fontSize:11, color:"#b8907a", fontFamily:"DM Mono", marginLeft:2 }}>({catItems.length})</span>
+  return (
+    <div style={{ background: "#f5ede6", minHeight: "100vh", width: "100%" }}>
+      <div
+        style={{
+          maxWidth: 480,
+          margin: "0 auto",
+          minHeight: "100vh",
+          background: view === "menu" ? "#f5ede6" : "#f5ede6",
+          display: "flex",
+          flexDirection: "column",
+          position: "relative",
+        }}
+      >
+        <GS />
+
+        {view === "home" ? (
+          <>
+            {heroCarousel ?? (
+              <div
+                style={{
+                  background: "#fff",
+                  padding: "12px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  borderBottom: "1px solid #e8d5c8",
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", minHeight: 72 }}>
+                  {restaurant?.logo_url ? (
+                    <div style={{ width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff", border: "1px solid #e8d5c8" }}>
+                      <img src={restaurant.logo_url} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                    </div>
+                  ) : (
+                    <div style={{ width: 1, height: 1 }} aria-hidden />
+                  )}
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} />
+                  <button
+                    type="button"
+                    onClick={() => setShowInfo(true)}
+                    style={{
+                      width: 44,
+                      height: 44,
+                      borderRadius: 12,
+                      background: "#fff",
+                      border: "1px solid #e8d5c8",
+                      cursor: "pointer",
+                      fontSize: 18,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      color: "#3d1c12",
+                    }}
+                  >
+                    ☰
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div style={{ background: "#fff", padding: "20px 16px 16px" }}>
+              <div style={{ fontFamily: "Cormorant Garamond", fontSize: 30, fontWeight: 800, color: "#3d1c12", lineHeight: 1.1 }}>{restaurant.name}</div>
+              {tagline ? <div style={{ fontSize: 14, color: "#b8907a", marginTop: 4 }}>{tagline}</div> : null}
+              {orderingOn ? (
+                <div style={{ fontSize: 11, color: "#b8907a", marginTop: 4, fontFamily: "DM Mono" }}>
+                  {t.tableLabel} {tableNum}
+                </div>
+              ) : null}
             </div>
-            <div>
-              {catItems.map((item) => (
-                <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
+
+            <div style={{ padding: "0 16px", background: "#f5ede6" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "16px 0 12px",
+                  color: "#b8907a",
+                  fontSize: 11,
+                  fontFamily: "DM Mono, monospace",
+                  letterSpacing: "0.12em",
+                }}
+              >
+                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <span>{t.digitalMenuTitle}</span>
+                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+                {cats.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveCat(cat.id);
+                      setView("menu");
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      width: "100%",
+                      padding: "18px 20px",
+                      background: "#fff",
+                      border: "1px solid #e8d5c8",
+                      borderRadius: 14,
+                      cursor: "pointer",
+                      fontFamily: "DM Sans",
+                      fontSize: 15,
+                      fontWeight: 700,
+                      color: "#3d1c12",
+                      letterSpacing: "0.02em",
+                      boxShadow: "0 1px 4px rgba(61,28,18,0.05)",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <span style={{ fontSize: 20 }}>{cat.icon}</span>
+                      <span style={{ textTransform: "uppercase" }}>{cat.name}</span>
+                    </div>
+                    <span style={{ fontSize: 20, color: "#b8907a" }}>›</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ padding: "0 16px 32px", background: "#f5ede6" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "16px 0 16px",
+                  color: "#b8907a",
+                  fontSize: 11,
+                  fontFamily: "DM Mono, monospace",
+                  letterSpacing: "0.12em",
+                }}
+              >
+                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <span>{t.infoTitle}</span>
+                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+              </div>
+              {homeInfoRows.map((row) => (
+                <div
+                  key={row.label}
+                  style={{
+                    display: "flex",
+                    gap: 14,
+                    padding: "14px 0",
+                    borderBottom: "1px solid #f0e6dc",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <span style={{ fontSize: 22, flexShrink: 0 }}>{row.icon}</span>
+                  <div>
+                    <div style={{ fontSize: 11, color: "#b8907a", fontFamily: "DM Mono, monospace", marginBottom: 3 }}>{row.label}:</div>
+                    <div style={{ fontSize: 15, color: "#3d1c12", fontWeight: 500 }}>{row.val}</div>
+                  </div>
+                </div>
+              ))}
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "20px 0 12px",
+                  color: "#b8907a",
+                  fontSize: 11,
+                  fontFamily: "DM Mono, monospace",
+                  letterSpacing: "0.12em",
+                }}
+              >
+                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <span>{t.serviceChargeTitle}</span>
+                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+              </div>
+              <div style={{ textAlign: "center", fontSize: 15, fontWeight: 700, color: "#3d1c12", fontFamily: "DM Mono, monospace" }}>{t.serviceChargeBody}</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <header
+              style={{
+                background: "#fff",
+                padding: "10px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                borderBottom: "1px solid #e8d5c8",
+                position: "sticky",
+                top: 0,
+                zIndex: 50,
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setView("home")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#f7efe8",
+                  border: "1px solid #e8d5c8",
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#3d1c12",
+                  fontFamily: "DM Sans",
+                }}
+              >
+                ← {t.back}
+              </button>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} />
+                <button
+                  type="button"
+                  onClick={() => setShowInfo(true)}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    background: "#fff",
+                    border: "1px solid #e8d5c8",
+                    cursor: "pointer",
+                    fontSize: 18,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#3d1c12",
+                  }}
+                >
+                  ☰
+                </button>
+              </div>
+            </header>
+
+            <div
+              style={{
+                background: "#fff",
+                borderBottom: "1px solid #e8d5c8",
+                position: "sticky",
+                top: 53,
+                zIndex: 49,
+              }}
+            >
+              <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none", padding: "0 16px" }}>
+                {cats.map((cat) => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setActiveCat(cat.id);
+                      document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    style={{
+                      padding: "12px 14px",
+                      background: "none",
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "DM Sans",
+                      fontSize: 13,
+                      fontWeight: 700,
+                      flexShrink: 0,
+                      color: activeCat === cat.id ? "#8b3a2a" : "#b8907a",
+                      borderBottom: activeCat === cat.id ? "2px solid #8b3a2a" : "2px solid transparent",
+                      transition: "all 0.2s",
+                      letterSpacing: "0.02em",
+                      textTransform: "uppercase",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ flex: 1, padding: `0 0 ${bottomPad}px` }}>
+              {grouped.map(({ cat, items: catItems }) => (
+                <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop: "110px" }}>
+                  <div style={{ padding: "20px 16px 8px", borderBottom: "1px solid #e8d5c8", background: "#f5ede6" }}>
+                    <span style={{ fontFamily: "DM Sans", fontSize: 18, fontWeight: 800, color: "#3d1c12", textTransform: "uppercase", letterSpacing: "0.03em" }}>{cat.name}</span>
+                  </div>
+                  <div>
+                    {catItems.map((item) => (
+                      <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
-          </div>
-        ))}
-      </div>
+          </>
+        )}
 
       {orderingOn && cartCount > 0 && (
         <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", width:"calc(100% - 32px)", maxWidth:448, zIndex:100 }}>
@@ -787,7 +1311,7 @@ export default function CustomerMenu() {
       {showInfo && (
         <div style={{ position:"fixed", inset:0, zIndex:300 }}>
           <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.4)" }} onClick={() => setShowInfo(false)} />
-          <div style={{ position:"absolute", top:0, left:0, width:"85%", maxWidth:340, height:"100%", background:"#fff", overflowY:"auto", display:"flex", flexDirection:"column" }}>
+          <div className="info-sidebar-panel" style={{ position:"absolute", top:0, left:0, width:"85%", maxWidth:340, height:"100%", background:"#fff", overflowY:"auto", display:"flex", flexDirection:"column", boxShadow:"4px 0 24px rgba(61,28,18,0.08)" }}>
             <div style={{ display:"flex", justifyContent:"flex-end", padding:"16px 16px 0" }}>
               <button type="button" onClick={() => setShowInfo(false)}
                 style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, color:"#7a4f3a", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
@@ -820,8 +1344,8 @@ export default function CustomerMenu() {
               </>
             )}
 
-            <div style={{ margin:"24px 20px 0", padding:"16px", background:"#f7efe8", borderRadius:12, fontSize:13, color:"#7a4f3a", fontFamily:"DM Mono", textAlign:"center" }}>
-              Service charge: 10%
+            <div style={{ margin:"24px 20px 0", padding:"16px", background:"#f7efe8", borderRadius:12, fontSize:13, color:"#7a4f3a", fontFamily:"DM Mono, monospace", textAlign:"center" }}>
+              {t.serviceChargeBody}
             </div>
           </div>
         </div>
