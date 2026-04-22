@@ -431,37 +431,42 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
   );
 }
 
-function CompactCard({ item, orderingOn, addedId, onAdd, onOpen }) {
+function ItemRow({ item, orderingOn, addedId, onAdd, onOpen }) {
   return (
     <div
       onClick={() => onOpen(item)}
-      style={{ background:"#fff", borderRadius:14, overflow:"hidden", boxShadow:"0 1px 6px rgba(61,28,18,0.07)", cursor:"pointer", display:"flex", flexDirection:"column", transition:"transform 0.15s ease" }}
+      style={{ display:"flex", alignItems:"center", gap:14, padding:"16px 0", borderBottom:"1px solid #f0e6dc", cursor:"pointer", minHeight:90 }}
     >
-      <div style={{ width:"100%", aspectRatio:"4/3", background:"#f7efe8", overflow:"hidden", position:"relative" }}>
-        {item.img ? (
-          <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.background = "#f7efe8"; }} />
-        ) : (
-          <div style={{ width:"100%", height:"100%", background:"#f7efe8", display:"flex", alignItems:"center", justifyContent:"center", fontSize:28 }} />
-        )}
+      <div style={{ flex:1, minWidth:0 }}>
         {item.badge && (
-          <div style={{ position:"absolute", top:6, left:6, background:"#d4956a", color:"#fff", fontSize:9, fontWeight:700, borderRadius:20, padding:"2px 7px" }}>{item.badge}</div>
+          <div style={{ display:"inline-block", fontSize:10, fontWeight:700, color:"#8b3a2a", background:"#f7efe8", borderRadius:20, padding:"2px 8px", marginBottom:5 }}>
+            {item.badge}
+          </div>
         )}
-      </div>
-      <div style={{ padding:"10px 10px 8px", flex:1, display:"flex", flexDirection:"column", justifyContent:"space-between" }}>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:15, fontWeight:600, color:"#3d1c12", lineHeight:1.25, marginBottom:6, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden" }}>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:17, fontWeight:700, color:"#3d1c12", lineHeight:1.25, marginBottom:4 }}>
           {item.name}
         </div>
-        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginTop:"auto" }}>
-          <span style={{ fontFamily:"Cormorant Garamond", fontSize:17, fontWeight:700, color:"#d4956a" }}>₼{Number(item.price).toFixed(2)}</span>
+        {item.desc && (
+          <div style={{ fontSize:12, color:"#b8907a", lineHeight:1.5, display:"-webkit-box", WebkitLineClamp:2, WebkitBoxOrient:"vertical", overflow:"hidden", marginBottom:6 }}>
+            {item.desc}
+          </div>
+        )}
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+          <span style={{ fontSize:16, fontWeight:700, color:"#d4956a", fontFamily:"Cormorant Garamond" }}>
+            ₼{Number(item.price).toFixed(2)}
+          </span>
           {orderingOn && (
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); onAdd(item); }}
-              style={{ width:28, height:28, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", background: addedId === item.id ? "#4caf50" : "#8b3a2a", color:"#fff", flexShrink:0, transition:"background 0.15s" }}>
+            <button type="button" onClick={(e) => { e.stopPropagation(); onAdd(item); }}
+              style={{ width:30, height:30, borderRadius:"50%", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", background: addedId === item.id ? "#4caf50" : "#8b3a2a", color:"#fff", flexShrink:0, transition:"background 0.15s" }}>
               {addedId === item.id ? "✓" : "+"}
             </button>
           )}
         </div>
+      </div>
+      <div style={{ width:90, height:90, borderRadius:12, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
+        {item.img
+          ? <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.background = "#f7efe8"; e.target.style.display = "none"; }} />
+          : null}
       </div>
     </div>
   );
@@ -495,6 +500,7 @@ export default function CustomerMenu() {
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
   const [addedId, setAddedId] = useState(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -624,25 +630,31 @@ export default function CustomerMenu() {
               </div>
             ) : null}
           </div>
-          <div ref={langMenuWrapRef} style={{ position:"relative", marginTop:4, flexShrink:0 }}>
-            <button type="button" aria-label="Language" aria-haspopup="listbox" aria-expanded={langMenuOpen}
-              onClick={() => setLangMenuOpen((o) => !o)}
-              style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:36, padding:0, borderRadius:20, border:"1px solid #e8d5c8", background:"#fff", cursor:"pointer", fontSize:22, lineHeight:1 }}>
-              {LANG_FLAG[lang] || LANG_FLAG.AZ}
+          <div style={{ display:"flex", gap:8, alignItems:"center", marginTop:4, flexShrink:0 }}>
+            <div ref={langMenuWrapRef} style={{ position:"relative" }}>
+              <button type="button" aria-label="Language" aria-haspopup="listbox" aria-expanded={langMenuOpen}
+                onClick={() => setLangMenuOpen((o) => !o)}
+                style={{ display:"flex", alignItems:"center", justifyContent:"center", width:44, height:36, padding:0, borderRadius:20, border:"1px solid #e8d5c8", background:"#fff", cursor:"pointer", fontSize:22, lineHeight:1 }}>
+                {LANG_FLAG[lang] || LANG_FLAG.AZ}
+              </button>
+              {langMenuOpen ? (
+                <div role="listbox"
+                  style={{ position:"absolute", top:"100%", right:0, marginTop:6, minWidth:188, background:"#fff", border:"1px solid #e8d5c8", borderRadius:12, boxShadow:"0 8px 24px rgba(61,28,18,0.1)", padding:"6px 0", zIndex:60 }}>
+                  {LANG_OPTIONS.map(({ code, flag, label }) => (
+                    <button key={code} type="button" role="option" aria-selected={lang === code}
+                      onClick={() => { setLang(code); setLangMenuOpen(false); }}
+                      style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px", border:"none", background:"transparent", cursor:"pointer", fontFamily:"DM Sans, sans-serif", fontSize:13, fontWeight:500, color:"#3d1c12", textAlign:"left" }}>
+                      <span style={{ fontSize:18, lineHeight:1 }} aria-hidden>{flag}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+            <button type="button" onClick={() => setShowInfo(true)}
+              style={{ width:44, height:36, borderRadius:20, border:"1px solid #e8d5c8", background:"#fff", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>
+              ☰
             </button>
-            {langMenuOpen ? (
-              <div role="listbox"
-                style={{ position:"absolute", top:"100%", right:0, marginTop:6, minWidth:188, background:"#fff", border:"1px solid #e8d5c8", borderRadius:12, boxShadow:"0 8px 24px rgba(61,28,18,0.1)", padding:"6px 0", zIndex:60 }}>
-                {LANG_OPTIONS.map(({ code, flag, label }) => (
-                  <button key={code} type="button" role="option" aria-selected={lang === code}
-                    onClick={() => { setLang(code); setLangMenuOpen(false); }}
-                    style={{ display:"flex", alignItems:"center", gap:10, width:"100%", padding:"10px 14px", border:"none", background:"transparent", cursor:"pointer", fontFamily:"DM Sans, sans-serif", fontSize:13, fontWeight:500, color:"#3d1c12", textAlign:"left" }}>
-                    <span style={{ fontSize:18, lineHeight:1 }} aria-hidden>{flag}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </div>
         </div>
         <div style={{ display:"flex", gap:6, overflowX:"auto", paddingBottom:16, scrollbarWidth:"none" }}>
@@ -663,17 +675,17 @@ export default function CustomerMenu() {
         </div>
       </header>
 
-      <div style={{ flex:1, padding:`12px 12px ${bottomPad}px` }}>
+      <div style={{ flex:1, padding:`0 16px ${bottomPad}px` }}>
         {grouped.map(({ cat, items: catItems }) => (
-          <div key={cat.id} id={`cat-${cat.id}`} style={{ marginBottom:24, scrollMarginTop:"80px" }}>
-            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12, paddingTop:4 }}>
-              <span style={{ fontSize:18 }}>{cat.icon}</span>
-              <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#3d1c12" }}>{cat.name}</span>
-              <span style={{ fontSize:11, color:"#b8907a", fontFamily:"DM Mono" }}>({catItems.length})</span>
+          <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop:"80px" }}>
+            <div style={{ display:"flex", alignItems:"center", gap:8, padding:"20px 0 4px", borderBottom:"2px solid #e8d5c8", marginBottom:0 }}>
+              <span style={{ fontSize:20 }}>{cat.icon}</span>
+              <span style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12" }}>{cat.name}</span>
+              <span style={{ fontSize:11, color:"#b8907a", fontFamily:"DM Mono", marginLeft:2 }}>({catItems.length})</span>
             </div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+            <div>
               {catItems.map((item) => (
-                <CompactCard key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
+                <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
               ))}
             </div>
           </div>
@@ -724,6 +736,53 @@ export default function CustomerMenu() {
           onPlaceOrder={placeOrder}
           t={t}
         />
+      )}
+      {showInfo && (
+        <div style={{ position:"fixed", inset:0, zIndex:300 }}>
+          <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.4)" }} onClick={() => setShowInfo(false)} />
+          <div style={{ position:"absolute", top:0, right:0, width:"80%", maxWidth:320, height:"100%", background:"#fff", overflowY:"auto", padding:"24px 20px", display:"flex", flexDirection:"column" }}>
+            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:24 }}>
+              <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12" }}>{restaurant?.name}</div>
+              <button type="button" onClick={() => setShowInfo(false)} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, color:"#7a4f3a", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+            </div>
+
+            {restaurant?.logo_url && (
+              <div style={{ width:80, height:80, borderRadius:16, overflow:"hidden", marginBottom:20, background:"#f7efe8" }}>
+                <img src={restaurant.logo_url} alt="logo" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+              </div>
+            )}
+
+            {restaurant?.gallery && Array.isArray(restaurant.gallery) && restaurant.gallery.length > 0 && (
+              <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:20, scrollbarWidth:"none" }}>
+                {restaurant.gallery.map((url, i) => (
+                  <div key={i} style={{ width:120, height:90, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
+                    <img src={url} alt="" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={{ fontSize:10, color:"#b8907a", fontFamily:"DM Mono", letterSpacing:"0.1em", marginBottom:12 }}>CONTACT</div>
+
+            {[
+              { icon:"📍", label:"Address", val: restaurant?.location, href: restaurant?.location ? `https://maps.google.com/?q=${encodeURIComponent(restaurant.location)}` : null },
+              { icon:"📞", label:"Phone", val: restaurant?.phone, href: restaurant?.phone ? `tel:${restaurant.phone}` : null },
+              { icon:"✉️", label:"Email", val: restaurant?.contact_email, href: restaurant?.contact_email ? `mailto:${restaurant.contact_email}` : null },
+              { icon:"🌐", label:"Website", val: restaurant?.website, href: restaurant?.website },
+              { icon:"📸", label:"Instagram", val: restaurant?.instagram, href: restaurant?.instagram ? `https://instagram.com/${restaurant.instagram.replace("@", "")}` : null },
+            ].filter((r) => r.val).map((row) => (
+              <a key={row.label} href={row.href || "#"} target="_blank" rel="noopener noreferrer"
+                style={{ display:"flex", gap:12, padding:"14px 0", borderBottom:"1px solid #f0e6dc", alignItems:"center", textDecoration:"none" }}>
+                <span style={{ fontSize:18, flexShrink:0 }}>{row.icon}</span>
+                <div style={{ flex:1 }}>
+                  <div style={{ fontSize:10, color:"#b8907a", fontFamily:"DM Mono", letterSpacing:"0.08em", marginBottom:2 }}>{row.label.toUpperCase()}</div>
+                  <div style={{ fontSize:13, color:"#3d1c12" }}>{row.val}</div>
+                </div>
+                <span style={{ color:"#b8907a", fontSize:14 }}>→</span>
+              </a>
+            ))}
+          </div>
+        </div>
       )}
       </div>
     </div>

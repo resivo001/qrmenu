@@ -657,12 +657,19 @@ export default function RestaurantAdmin() {
   const [bulkCatsConfirm, setBulkCatsConfirm] = useState(null);
   const selectAllItemsRef = useRef(null);
   const selectAllCatsRef = useRef(null);
+  const logoFileRef = useRef(null);
+  const galleryFileRef = useRef(null);
   const [toast, setToast] = useState(null);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
     name: "",
     location: "",
     contact_email: "",
+    phone: "",
+    website: "",
+    instagram: "",
+    logo_url: "",
+    gallery: [],
     tables_count: "",
     new_password: "",
   });
@@ -719,6 +726,11 @@ export default function RestaurantAdmin() {
       name: data.name ?? "",
       location: data.location ?? "",
       contact_email: data.contact_email ?? "",
+      phone: data.phone ?? "",
+      website: data.website ?? "",
+      instagram: data.instagram ?? "",
+      logo_url: data.logo_url ?? "",
+      gallery: Array.isArray(data.gallery) ? data.gallery : [],
       tables_count: String(data.tables_count ?? data.tables ?? ""),
       new_password: "",
     });
@@ -748,7 +760,18 @@ export default function RestaurantAdmin() {
     setSelectedCats(new Set());
     setBulkItemsConfirm(null);
     setBulkCatsConfirm(null);
-    setSettingsForm({ name: "", location: "", contact_email: "", tables_count: "", new_password: "" });
+    setSettingsForm({
+      name: "",
+      location: "",
+      contact_email: "",
+      phone: "",
+      website: "",
+      instagram: "",
+      logo_url: "",
+      gallery: [],
+      tables_count: "",
+      new_password: "",
+    });
   };
 
   const saveItem = async (form) => {
@@ -859,12 +882,31 @@ export default function RestaurantAdmin() {
         name: settingsForm.name.trim(),
         location: settingsForm.location.trim(),
         contact_email: settingsForm.contact_email.trim(),
+        phone: settingsForm.phone.trim(),
+        website: settingsForm.website.trim(),
+        instagram: settingsForm.instagram.trim(),
+        logo_url: settingsForm.logo_url.trim(),
+        gallery: settingsForm.gallery,
         tables_count: tablesNum,
       };
       if (newPassword) payload.password = newPassword;
       const { error } = await supabase.from("restaurants").update(payload).eq("id", String(rid));
       if (error) { showToast(error.message, "warn"); return; }
-      setRestaurant((r) => r ? { ...r, name: payload.name, location: payload.location, contact_email: payload.contact_email, tables_count: tablesNum, ...(newPassword ? { password: newPassword } : {}) } : r);
+      setRestaurant((r) => (r
+        ? {
+            ...r,
+            name: payload.name,
+            location: payload.location,
+            contact_email: payload.contact_email,
+            phone: payload.phone,
+            website: payload.website,
+            instagram: payload.instagram,
+            logo_url: payload.logo_url,
+            gallery: payload.gallery,
+            tables_count: tablesNum,
+            ...(newPassword ? { password: newPassword } : {}),
+          }
+        : r));
       setSettingsForm((f) => ({ ...f, new_password: "" }));
       showToast("Settings saved ✓");
     } catch (e) {
@@ -1220,6 +1262,88 @@ export default function RestaurantAdmin() {
                       <input style={S.inp} value={settingsForm[key]} onChange={(e) => setSettingsForm((p) => ({ ...p, [key]: e.target.value }))} disabled={settingsSaving} />
                     </div>
                   ))}
+                  {[
+                    { label:"Phone Number", key:"phone", placeholder:"+994 12 000 00 00" },
+                    { label:"Website URL", key:"website", placeholder:"https://yourrestaurant.com" },
+                    { label:"Instagram", key:"instagram", placeholder:"@yourrestaurant" },
+                  ].map(({ label, key, placeholder }) => (
+                    <div key={label} style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                      <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>{label.toUpperCase()}</label>
+                      <input style={S.inp} placeholder={placeholder} value={settingsForm[key]} onChange={(e) => setSettingsForm((p) => ({ ...p, [key]: e.target.value }))} disabled={settingsSaving} />
+                    </div>
+                  ))}
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>LOGO</label>
+                    {settingsForm.logo_url && (
+                      <div style={{ width:80, height:80, borderRadius:12, overflow:"hidden", background:"#f5f0e8", marginBottom:8 }}>
+                        <img src={settingsForm.logo_url} alt="logo" style={{ width:"100%", height:"100%", objectFit:"cover" }} />
+                      </div>
+                    )}
+                    <input
+                      ref={logoFileRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display:"none" }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file || !restaurant?.id) return;
+                        const fileName = `logo-${restaurant.id}-${Date.now()}`;
+                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { upsert: true });
+                        if (error) { showToast(error.message, "warn"); return; }
+                        const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
+                        const url = urlData?.publicUrl;
+                        if (url) setSettingsForm((p) => ({ ...p, logo_url: url }));
+                      }}
+                    />
+                    <button type="button" className="btn-ghost" style={S.ghostBtn}
+                      onClick={() => logoFileRef.current?.click()}>
+                      {settingsForm.logo_url ? "Change Logo" : "Upload Logo"}
+                    </button>
+                  </div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>GALLERY PHOTOS</label>
+                    <div style={{ fontSize:11, color:"#c4b8a8", fontFamily:"DM Mono", marginBottom:6 }}>
+                      These appear in the customer menu info sidebar. Max 5 photos.
+                    </div>
+                    {settingsForm.gallery.length > 0 && (
+                      <div style={{ display:"flex", gap:8, flexWrap:"wrap", marginBottom:8 }}>
+                        {settingsForm.gallery.map((url, i) => (
+                          <div key={i} style={{ position:"relative", width:80, height:80 }}>
+                            <img src={url} alt="" style={{ width:80, height:80, borderRadius:10, objectFit:"cover", display:"block" }} />
+                            <button type="button"
+                              onClick={() => setSettingsForm((p) => ({ ...p, gallery: p.gallery.filter((_, idx) => idx !== i) }))}
+                              style={{ position:"absolute", top:-6, right:-6, width:20, height:20, borderRadius:"50%", background:"#c62828", color:"#fff", border:"none", cursor:"pointer", fontSize:12, display:"flex", alignItems:"center", justifyContent:"center" }}>
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <input
+                      ref={galleryFileRef}
+                      type="file"
+                      accept="image/*"
+                      style={{ display:"none" }}
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        e.target.value = "";
+                        if (!file || !restaurant?.id) return;
+                        if (settingsForm.gallery.length >= 5) { showToast("Max 5 gallery photos", "warn"); return; }
+                        const fileName = `gallery-${restaurant.id}-${Date.now()}`;
+                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file);
+                        if (error) { showToast(error.message, "warn"); return; }
+                        const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
+                        const url = urlData?.publicUrl;
+                        if (url) setSettingsForm((p) => ({ ...p, gallery: [...p.gallery, url] }));
+                      }}
+                    />
+                    <button type="button" className="btn-ghost" style={S.ghostBtn}
+                      disabled={settingsForm.gallery.length >= 5}
+                      onClick={() => galleryFileRef.current?.click()}>
+                      + Add Photo ({settingsForm.gallery.length}/5)
+                    </button>
+                  </div>
                   <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                     <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em" }}>NUMBER OF TABLES</label>
                     <input type="number" min={0} style={S.inp} value={settingsForm.tables_count} onChange={(e) => setSettingsForm((p) => ({ ...p, tables_count: e.target.value }))} disabled={settingsSaving} />
