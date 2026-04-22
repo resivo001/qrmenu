@@ -314,13 +314,13 @@ function CatModal({ cat, onSave, onClose }) {
   );
 }
 
-function Confirm({ msg, onConfirm, onCancel }) {
+function Confirm({ msg, onConfirm, onCancel, showSubline = true }) {
   return (
     <div style={S.overlay} onClick={onCancel}>
       <div className="fade-up" style={{ ...S.modal, maxWidth:340, padding:32, textAlign:"center" }} onClick={e=>e.stopPropagation()}>
         <div style={{ fontSize:36, marginBottom:14 }}>🗑</div>
-        <div style={{ fontSize:15, fontWeight:600, color:"#1a1714", marginBottom:6 }}>{msg}</div>
-        <div style={{ fontSize:12, color:"#a89880", fontFamily:"DM Mono", marginBottom:24 }}>Cannot be undone.</div>
+        <div style={{ fontSize:15, fontWeight:600, color:"#1a1714", marginBottom: showSubline ? 6 : 24 }}>{msg}</div>
+        {showSubline ? <div style={{ fontSize:12, color:"#a89880", fontFamily:"DM Mono", marginBottom:24 }}>Cannot be undone.</div> : null}
         <div style={{ display:"flex", gap:10 }}>
           <button type="button" className="btn-ghost" style={{ ...S.ghostBtn, flex:1 }} onClick={onCancel}>Cancel</button>
           <button type="button" className="btn-accent" style={{ ...S.accentBtn, flex:1, background:"#c62828" }} onClick={onConfirm}>Delete</button>
@@ -651,6 +651,12 @@ export default function RestaurantAdmin() {
   const [itemModal, setItemModal] = useState(null);
   const [catModal, setCatModal] = useState(null);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [selectedItems, setSelectedItems] = useState(() => new Set());
+  const [selectedCats, setSelectedCats] = useState(() => new Set());
+  const [bulkItemsConfirm, setBulkItemsConfirm] = useState(null);
+  const [bulkCatsConfirm, setBulkCatsConfirm] = useState(null);
+  const selectAllItemsRef = useRef(null);
+  const selectAllCatsRef = useRef(null);
   const [toast, setToast] = useState(null);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsForm, setSettingsForm] = useState({
@@ -738,6 +744,10 @@ export default function RestaurantAdmin() {
     setItemModal(null);
     setCatModal(null);
     setConfirmDel(null);
+    setSelectedItems(new Set());
+    setSelectedCats(new Set());
+    setBulkItemsConfirm(null);
+    setBulkCatsConfirm(null);
     setSettingsForm({ name: "", location: "", contact_email: "", tables_count: "", new_password: "" });
   };
 
@@ -772,6 +782,11 @@ export default function RestaurantAdmin() {
     const { error } = await supabase.from("menu_items").delete().eq("id", id).eq("restaurant_id", restaurant.id);
     if (error) { showToast(error.message, "warn"); return; }
     setItems((p) => p.filter((i) => i.id !== String(id)));
+    setSelectedItems((prev) => {
+      const n = new Set(prev);
+      n.delete(String(id));
+      return n;
+    });
     setConfirmDel(null);
     showToast("Deleted", "warn");
   };
@@ -809,6 +824,11 @@ export default function RestaurantAdmin() {
     const { error } = await supabase.from("categories").delete().eq("id", id).eq("restaurant_id", restaurant.id);
     if (error) { showToast(error.message, "warn"); return; }
     setCats((p) => p.filter((c) => c.id !== String(id)));
+    setSelectedCats((prev) => {
+      const n = new Set(prev);
+      n.delete(String(id));
+      return n;
+    });
     setConfirmDel(null);
     showToast("Deleted", "warn");
   };
@@ -859,6 +879,123 @@ export default function RestaurantAdmin() {
   const newOrders = orders.filter((o) => o.status === "new").length;
   const todayRevenue = orders.reduce((s, o) => s + o.total, 0);
   const displayTab = !features.ordering && tab === "orders" ? "menu" : tab;
+
+  useEffect(() => {
+    setSelectedItems(new Set());
+  }, [search, filterCat]);
+
+  useEffect(() => {
+    if (displayTab !== "menu") setSelectedItems(new Set());
+  }, [displayTab]);
+
+  useEffect(() => {
+    if (displayTab !== "categories") setSelectedCats(new Set());
+  }, [displayTab]);
+
+  useEffect(() => {
+    const el = selectAllItemsRef.current;
+    if (!el) return;
+    const filtIds = filteredItems.map((i) => i.id);
+    const n = filtIds.filter((id) => selectedItems.has(id)).length;
+    el.indeterminate = filtIds.length > 0 && n > 0 && n < filtIds.length;
+  }, [filteredItems, selectedItems]);
+
+  useEffect(() => {
+    const el = selectAllCatsRef.current;
+    if (!el) return;
+    const ids = cats.map((c) => c.id);
+    const n = ids.filter((id) => selectedCats.has(id)).length;
+    el.indeterminate = ids.length > 0 && n > 0 && n < ids.length;
+  }, [cats, selectedCats]);
+
+  const cbWrap = { flex: "0 0 20px", display: "flex", alignItems: "center", justifyContent: "center" };
+  const cbStyle = { width: 16, height: 16, accentColor: "#1a1714", cursor: "pointer" };
+
+  const allFilteredSelected = filteredItems.length > 0 && filteredItems.every((i) => selectedItems.has(i.id));
+  const toggleSelectAllFiltered = () => {
+    setSelectedItems((prev) => {
+      const ids = filteredItems.map((i) => i.id);
+      if (ids.length === 0) return prev;
+      if (ids.every((id) => prev.has(id))) {
+        const n = new Set(prev);
+        ids.forEach((id) => n.delete(id));
+        return n;
+      }
+      return new Set([...prev, ...ids]);
+    });
+  };
+
+  const allCatsSelected = cats.length > 0 && cats.every((c) => selectedCats.has(c.id));
+  const toggleSelectAllCats = () => {
+    setSelectedCats((prev) => {
+      const ids = cats.map((c) => c.id);
+      if (ids.length === 0) return prev;
+      if (ids.every((id) => prev.has(id))) {
+        const n = new Set(prev);
+        ids.forEach((id) => n.delete(id));
+        return n;
+      }
+      return new Set([...prev, ...ids]);
+    });
+  };
+
+  const toggleItemSelected = (id, e) => {
+    e.stopPropagation();
+    setSelectedItems((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  };
+
+  const toggleCatSelected = (id, e) => {
+    e.stopPropagation();
+    setSelectedCats((prev) => {
+      const n = new Set(prev);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  };
+
+  const runBulkDeleteItems = async () => {
+    const ids = bulkItemsConfirm;
+    if (!restaurant?.id || !ids?.length) {
+      setBulkItemsConfirm(null);
+      return;
+    }
+    const { error } = await supabase.from("menu_items").delete().in("id", ids).eq("restaurant_id", restaurant.id);
+    setBulkItemsConfirm(null);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    const idSet = new Set(ids.map(String));
+    setItems((p) => p.filter((i) => !idSet.has(i.id)));
+    setSelectedItems(new Set());
+    showToast(`${ids.length} items deleted`);
+  };
+
+  const runBulkDeleteCats = async () => {
+    const ids = bulkCatsConfirm;
+    if (!restaurant?.id || !ids?.length) {
+      setBulkCatsConfirm(null);
+      return;
+    }
+    const idStrs = ids.map(String);
+    const { error } = await supabase.from("categories").delete().in("id", idStrs).eq("restaurant_id", restaurant.id);
+    setBulkCatsConfirm(null);
+    if (error) {
+      showToast(error.message, "warn");
+      return;
+    }
+    const deletedSet = new Set(idStrs);
+    setCats((p) => p.filter((c) => !deletedSet.has(c.id)));
+    setItems((p) => p.filter((i) => !deletedSet.has(i.cat)));
+    setSelectedCats(new Set());
+    showToast(`${ids.length} categories deleted`);
+  };
 
   useEffect(() => {
     if (!authed || !restaurant?.id) return undefined;
@@ -956,8 +1093,18 @@ export default function RestaurantAdmin() {
                     <button type="button" className="btn-accent" style={S.accentBtn} onClick={()=>setItemModal("new")}>+ Add Item</button>
                   </div>
                 </div>
+                {selectedItems.size > 0 && (
+                  <div style={{ position:"sticky", top:0, zIndex:4, background:"#1a1714", color:"#faf8f4", borderRadius:12, padding:"12px 20px", display:"flex", alignItems:"center", gap:12, marginBottom:12, fontSize:13, fontFamily:"Syne, sans-serif" }}>
+                    <span style={{ flex:1, fontWeight:600 }}>{selectedItems.size} selected</span>
+                    <button type="button" onClick={() => setBulkItemsConfirm([...selectedItems])} style={{ background:"#c62828", color:"#fff", border:"none", borderRadius:8, padding:"8px 16px", fontWeight:700, cursor:"pointer", fontFamily:"Syne, sans-serif", fontSize:13 }}>Delete Selected</button>
+                    <button type="button" onClick={() => setSelectedItems(new Set())} style={{ background:"transparent", color:"#c4b8a8", border:"1px solid rgba(255,255,255,0.2)", borderRadius:8, padding:"8px 16px", cursor:"pointer", fontFamily:"Syne, sans-serif", fontSize:13 }}>Deselect All</button>
+                  </div>
+                )}
                 <div className="admin-table-wrap" style={S.table}>
                   <div style={S.thead}>
+                    <span style={cbWrap} onClick={(e) => e.stopPropagation()}>
+                      <input ref={selectAllItemsRef} type="checkbox" checked={allFilteredSelected} onChange={toggleSelectAllFiltered} style={cbStyle} title="Select all" aria-label="Select all filtered items" />
+                    </span>
                     <span style={{ flex:4 }}>Item</span>
                     <span style={{ flex:2 }}>Category</span>
                     <span style={{ flex:1 }}>Price</span>
@@ -967,9 +1114,12 @@ export default function RestaurantAdmin() {
                   {filteredItems.length===0 && <div style={{ padding:"40px", textAlign:"center", color:"#c4b8a8", fontFamily:"DM Mono" }}>No items found</div>}
                   {filteredItems.map(item=>(
                     <div key={item.id} role="button" tabIndex={0} className="row-hover"
-                      style={{ ...S.trow, cursor:"pointer" }}
+                      style={{ ...S.trow, cursor:"pointer", background: selectedItems.has(item.id) ? "#f5f0e8" : undefined }}
                       onClick={()=>setItemModal(item)}
                       onKeyDown={(e)=>{ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); setItemModal(item);} }}>
+                      <span style={cbWrap} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                        <input type="checkbox" checked={selectedItems.has(item.id)} onChange={(e) => toggleItemSelected(item.id, e)} style={cbStyle} aria-label={`Select ${item.name}`} />
+                      </span>
                       <span style={{ flex:4, display:"flex", alignItems:"center", gap:12, minWidth:0 }}>
                         {item.img && <img src={item.img} alt="" style={{ width:46, height:46, borderRadius:10, objectFit:"cover", flexShrink:0 }} onError={e=>e.target.style.display="none"} />}
                         <span style={{ minWidth:0 }}>
@@ -1006,8 +1156,18 @@ export default function RestaurantAdmin() {
                   </div>
                   <button type="button" className="btn-accent" style={S.accentBtn} onClick={()=>setCatModal("new")}>+ Add Category</button>
                 </div>
+                {selectedCats.size > 0 && (
+                  <div style={{ position:"sticky", top:0, zIndex:4, background:"#1a1714", color:"#faf8f4", borderRadius:12, padding:"12px 20px", display:"flex", alignItems:"center", gap:12, marginBottom:12, fontSize:13, fontFamily:"Syne, sans-serif" }}>
+                    <span style={{ flex:1, fontWeight:600 }}>{selectedCats.size} selected</span>
+                    <button type="button" onClick={() => setBulkCatsConfirm([...selectedCats])} style={{ background:"#c62828", color:"#fff", border:"none", borderRadius:8, padding:"8px 16px", fontWeight:700, cursor:"pointer", fontFamily:"Syne, sans-serif", fontSize:13 }}>Delete Selected</button>
+                    <button type="button" onClick={() => setSelectedCats(new Set())} style={{ background:"transparent", color:"#c4b8a8", border:"1px solid rgba(255,255,255,0.2)", borderRadius:8, padding:"8px 16px", cursor:"pointer", fontFamily:"Syne, sans-serif", fontSize:13 }}>Deselect All</button>
+                  </div>
+                )}
                 <div className="admin-table-wrap" style={S.table}>
                   <div style={S.thead}>
+                    <span style={cbWrap} onClick={(e) => e.stopPropagation()}>
+                      <input ref={selectAllCatsRef} type="checkbox" checked={allCatsSelected} onChange={toggleSelectAllCats} style={cbStyle} title="Select all" aria-label="Select all categories" />
+                    </span>
                     <span style={{ flex:1 }}>Icon</span>
                     <span style={{ flex:4 }}>Name</span>
                     <span style={{ flex:2 }}>Items</span>
@@ -1017,7 +1177,10 @@ export default function RestaurantAdmin() {
                     const count = items.filter(i=>i.cat===cat.id).length;
                     const avail = items.filter(i=>i.cat===cat.id&&i.available).length;
                     return (
-                      <div key={cat.id} className="row-hover" style={S.trow}>
+                      <div key={cat.id} className="row-hover" style={{ ...S.trow, background: selectedCats.has(cat.id) ? "#f5f0e8" : undefined }}>
+                        <span style={cbWrap} onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
+                          <input type="checkbox" checked={selectedCats.has(cat.id)} onChange={(e) => toggleCatSelected(cat.id, e)} style={cbStyle} aria-label={`Select ${cat.name}`} />
+                        </span>
                         <span style={{ flex:1, fontSize:24 }}>{cat.icon}</span>
                         <span style={{ flex:4, fontWeight:700, fontSize:15, color:"#1a1714" }}>{cat.name}</span>
                         <span style={{ flex:2, fontSize:13, color:"#a89880", fontFamily:"DM Mono" }}>{count} items · {avail} available</span>
@@ -1116,6 +1279,22 @@ export default function RestaurantAdmin() {
       )}
       {confirmDel && (
         <Confirm msg={`Delete "${confirmDel.name}"?`} onConfirm={() => (confirmDel.type === "item" ? deleteItem(confirmDel.id) : deleteCategory(confirmDel.id))} onCancel={() => setConfirmDel(null)} />
+      )}
+      {bulkItemsConfirm && (
+        <Confirm
+          msg={`Delete ${bulkItemsConfirm.length} items? This cannot be undone.`}
+          showSubline={false}
+          onConfirm={() => void runBulkDeleteItems()}
+          onCancel={() => setBulkItemsConfirm(null)}
+        />
+      )}
+      {bulkCatsConfirm && (
+        <Confirm
+          msg={`Delete ${bulkCatsConfirm.length} categories? This cannot be undone.`}
+          showSubline={false}
+          onConfirm={() => void runBulkDeleteCats()}
+          onCancel={() => setBulkCatsConfirm(null)}
+        />
       )}
       {toast && (
         <div style={{ position:"fixed", bottom:28, left:"50%", transform:"translateX(-50%)", padding:"11px 22px", borderRadius:28, fontSize:12, fontFamily:"DM Mono", fontWeight:500, zIndex:999, background:toast.type==="warn"?"#fdecea":"#eaf5ea", color:toast.type==="warn"?"#c62828":"#2e7d32", border:`1px solid ${toast.type==="warn"?"#f5c6c6":"#c6e6c6"}` }}>
