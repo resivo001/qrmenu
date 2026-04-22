@@ -106,11 +106,31 @@ function getActivePaymentProvider() {
 
 const UI = {
   EN: {
-    scanPrompt: "Scan to view our menu · Ask your waiter to order",
+    digitalMenu: "DIGITAL MENU",
+    info: "INFO",
+    serviceCharge: "SERVICE CHARGE",
+    serviceChargeVal: "Service charge: 10%",
+    address: "Address",
+    workingHours: "Working hours",
+    phone: "Phone",
+    email: "Email",
+    website: "Website",
+    instagram: "Instagram",
+    social: "Social media",
+    contact: "Contact",
+    back: "Back",
+    viewMenu: "View Menu",
+    allCategories: "All",
+    addToOrder: "Add to Order",
+    askWaiterOrder: "Ask your waiter to order",
+    closeBtn: "Close",
     viewOrder: "View Order",
     yourOrder: "Your Order",
+    tableLabel: "Table",
+    total: "Total",
+    sending: "Sending…",
     placeOrderBtn: "Place Order →",
-    sendWaiterBtn: "Send Order to Waiter →",
+    sendWaiterBtn: "Send to Waiter →",
     payNowBtn: "Pay Now →",
     paymentSubtitle: "Payment at the table",
     waiterSubtitle: "A waiter will come to your table",
@@ -118,30 +138,45 @@ const UI = {
     orderPlacedTitle: "Order Placed!",
     orderSentTitle: "Sent to the team!",
     successBody: "Your order has been sent to the kitchen. A waiter will confirm shortly.",
-    total: "Total",
-    addToOrder: "Add to Order",
-    askWaiterOrder: "Ask your waiter to order",
-    sending: "Sending…",
-    tableLabel: "Table",
-    back: "Back",
-    digitalMenuTitle: "DIGITAL MENU",
-    infoTitle: "INFORMATION",
-    serviceChargeTitle: "SERVICE CHARGE",
-    serviceChargeBody: "Service charge: 10%",
-    addressLabel: "Address",
-    workingHoursLabel: "Hours",
-    phoneLabel: "Phone",
-    emailLabel: "Email",
+    orderErrorGeneric: "Something went wrong. Please try again.",
+    paymentError: "Payment failed. Please try again or pay at the table.",
     loading: "Loading…",
     loadFailTitle: "Couldn't load menu",
     restaurantNotFound: "Restaurant not found",
-    orderErrorGeneric: "Something went wrong",
-    paymentError: "Payment failed. Please try again or pay at the table.",
+    scanPrompt: "Scan to view our menu · Ask your waiter to order",
+    langAria: "Language",
+    langOptAz: "Azərbaycanca",
+    langOptRu: "Русский",
+    langOptEn: "English",
+    heroPrevSlide: "Previous slide",
+    heroNextSlide: "Next slide",
+    logoAlt: "Logo",
+    openMenuAria: "Open menu",
   },
   AZ: {
-    scanPrompt: "Menüyə baxmaq üçün skan edin · Ofisiant sifariş alacaq",
+    digitalMenu: "RƏQƏMSAL MENYU",
+    info: "MƏLUMAT",
+    serviceCharge: "SERVİS HAQQI",
+    serviceChargeVal: "Servis haqqı: 10%",
+    address: "Ünvan",
+    workingHours: "İş vaxtı",
+    phone: "Telefon",
+    email: "E-poçt",
+    website: "Vebsayt",
+    instagram: "Instagram",
+    social: "Sosial şəbəkələr",
+    contact: "Əlaqə",
+    back: "Geri",
+    viewMenu: "Menüyə bax",
+    allCategories: "Hamısı",
+    addToOrder: "Sifariş et",
+    askWaiterOrder: "Sifariş üçün ofisianta müraciət edin",
+    closeBtn: "Bağla",
     viewOrder: "Sifarişə bax",
     yourOrder: "Sifarişiniz",
+    tableLabel: "Masa",
+    total: "Cəmi",
+    sending: "Göndərilir…",
     placeOrderBtn: "Sifariş ver →",
     sendWaiterBtn: "Ofisiantə göndər →",
     payNowBtn: "Ödə →",
@@ -150,76 +185,86 @@ const UI = {
     payingSubtitle: "Ödəniş emal edilir…",
     orderPlacedTitle: "Sifariş qəbul edildi!",
     orderSentTitle: "Komandaya göndərildi!",
-    successBody: "Sifarişiniz mətbəxə göndərildi. Ofisiant təsdiqləyəcək.",
-    total: "Cəmi",
-    addToOrder: "Əlavə et",
-    askWaiterOrder: "Sifariş üçün ofisianta müraciət edin",
-    sending: "Göndərilir…",
-    tableLabel: "Masa",
-    back: "Geri",
-    digitalMenuTitle: "RƏQƏMSAL MENYU",
-    infoTitle: "MƏLUMAT",
-    serviceChargeTitle: "SERVİS HAQQI",
-    serviceChargeBody: "SERVİS HAQQI 10%",
-    addressLabel: "Ünvan",
-    workingHoursLabel: "İş vaxtı",
-    phoneLabel: "Telefon",
-    emailLabel: "Email",
+    successBody: "Sifarişiniz mətbəxə göndərildi. Ofisiant tezliklə təsdiqləyəcək.",
+    orderErrorGeneric: "Xəta baş verdi. Yenidən cəhd edin.",
+    paymentError: "Ödəniş alınmadı. Yenidən cəhd edin və ya masada ödəyin.",
     loading: "Yüklənir…",
     loadFailTitle: "Menü yüklənmədi",
     restaurantNotFound: "Restoran tapılmadı",
-    orderErrorGeneric: "Xəta baş verdi",
-    paymentError: "Ödəniş alınmadı. Yenidən cəhd edin.",
+    scanPrompt: "Menüyə baxmaq üçün skan edin · Ofisiant sifariş alacaq",
+    langAria: "Dil",
+    langOptAz: "Azərbaycanca",
+    langOptRu: "Русский",
+    langOptEn: "English",
+    heroPrevSlide: "Əvvəlki slayd",
+    heroNextSlide: "Növbəti slayd",
+    logoAlt: "Loqo",
+    openMenuAria: "Menyunu aç",
   },
   RU: {
-    scanPrompt: "Сканируйте меню · Официант примет заказ",
+    digitalMenu: "ЦИФРОВОЕ МЕНЮ",
+    info: "ИНФОРМАЦИЯ",
+    serviceCharge: "СЕРВИСНЫЙ СБОР",
+    serviceChargeVal: "Сервисный сбор: 10%",
+    address: "Адрес",
+    workingHours: "Часы работы",
+    phone: "Телефон",
+    email: "Эл. почта",
+    website: "Веб-сайт",
+    instagram: "Instagram",
+    social: "Социальные сети",
+    contact: "Контакты",
+    back: "Назад",
+    viewMenu: "Смотреть меню",
+    allCategories: "Все",
+    addToOrder: "Добавить в заказ",
+    askWaiterOrder: "Попросите официанта принять заказ",
+    closeBtn: "Закрыть",
     viewOrder: "Посмотреть заказ",
     yourOrder: "Ваш заказ",
+    tableLabel: "Стол",
+    total: "Итого",
+    sending: "Отправка…",
     placeOrderBtn: "Оформить заказ →",
     sendWaiterBtn: "Отправить официанту →",
     payNowBtn: "Оплатить →",
     paymentSubtitle: "Оплата за столом",
-    waiterSubtitle: "Официант подойдет",
+    waiterSubtitle: "Официант подойдёт к вашему столу",
     payingSubtitle: "Обработка оплаты…",
     orderPlacedTitle: "Заказ принят!",
-    orderSentTitle: "Отправлено!",
-    successBody: "Заказ отправлен на кухню. Официант подтвердит.",
-    total: "Итого",
-    addToOrder: "Добавить",
-    askWaiterOrder: "Попросите официанта принять заказ",
-    sending: "Отправка…",
-    tableLabel: "Стол",
-    back: "Назад",
-    digitalMenuTitle: "ЦИФРОВОЕ МЕНЮ",
-    infoTitle: "ИНФОРМАЦИЯ",
-    serviceChargeTitle: "СЕРВИСНЫЙ СБОР",
-    serviceChargeBody: "Сервисный сбор: 10%",
-    addressLabel: "Адрес",
-    workingHoursLabel: "Часы работы",
-    phoneLabel: "Телефон",
-    emailLabel: "Email",
+    orderSentTitle: "Отправлено команде!",
+    successBody: "Ваш заказ отправлен на кухню. Официант скоро подтвердит.",
+    orderErrorGeneric: "Что-то пошло не так. Попробуйте ещё раз.",
+    paymentError: "Ошибка оплаты. Попробуйте ещё раз или оплатите за столом.",
     loading: "Загрузка…",
     loadFailTitle: "Не удалось загрузить меню",
     restaurantNotFound: "Ресторан не найден",
-    orderErrorGeneric: "Что-то пошло не так",
-    paymentError: "Ошибка оплаты. Попробуйте ещё раз.",
+    scanPrompt: "Сканируйте для просмотра меню · Официант примет заказ",
+    langAria: "Язык",
+    langOptAz: "Azərbaycanca",
+    langOptRu: "Русский",
+    langOptEn: "English",
+    heroPrevSlide: "Предыдущий слайд",
+    heroNextSlide: "Следующий слайд",
+    logoAlt: "Логотип",
+    openMenuAria: "Открыть меню",
   },
 };
 
 function stringsFor(lang) { return UI[lang] || UI.EN; }
 const LANG_FLAG = { AZ: "🇦🇿", RU: "🇷🇺", EN: "🇬🇧" };
-const LANG_OPTIONS = [
-  { code: "AZ", flag: "🇦🇿", label: "Azərbaycanca" },
-  { code: "RU", flag: "🇷🇺", label: "Русский" },
-  { code: "EN", flag: "🇬🇧", label: "English" },
+const LANG_MENU_ITEMS = [
+  { code: "AZ", flag: "🇦🇿", labelKey: "langOptAz" },
+  { code: "RU", flag: "🇷🇺", labelKey: "langOptRu" },
+  { code: "EN", flag: "🇬🇧", labelKey: "langOptEn" },
 ];
 
-function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrapRef, buttonStyle }) {
+function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrapRef, buttonStyle, t }) {
   return (
     <div ref={langMenuWrapRef} style={{ position: "relative" }}>
       <button
         type="button"
-        aria-label="Language"
+        aria-label={t.langAria}
         aria-haspopup="listbox"
         aria-expanded={langMenuOpen}
         onClick={() => setLangMenuOpen((o) => !o)}
@@ -259,7 +304,7 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
             zIndex: 60,
           }}
         >
-          {LANG_OPTIONS.map(({ code, flag, label }) => (
+          {LANG_MENU_ITEMS.map(({ code, flag, labelKey }) => (
             <button
               key={code}
               type="button"
@@ -288,7 +333,7 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
               <span style={{ fontSize: 18, lineHeight: 1 }} aria-hidden>
                 {flag}
               </span>
-              <span>{label}</span>
+              <span>{t[labelKey]}</span>
             </button>
           ))}
         </div>
@@ -359,7 +404,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
               {item.badge}
             </div>
           )}
-          <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
+          <button type="button" onClick={onClose} aria-label={t.closeBtn} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
         </div>
         <div style={{ padding:"24px 20px 0" }}>
           <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.2, marginBottom:8 }}>{item.name}</div>
@@ -466,7 +511,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"85vh", display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"20px 20px 0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
           <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#3d1c12" }}>{t.yourOrder}</div>
-          <button type="button" onClick={onClose} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#7a4f3a" }}>✕</button>
+          <button type="button" onClick={onClose} aria-label={t.closeBtn} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#7a4f3a" }}>✕</button>
         </div>
         <div style={{ fontSize:12, color:"#b8907a", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
 
@@ -475,7 +520,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f7efe8" }}>
               {item.img ? (
                 <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
-                  <img src={item.img} alt="" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+                  <img src={item.img} alt={item.name} style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
               ) : (
                 <div style={{ width:52, height:52, borderRadius:10, background:"#f7efe8", flexShrink:0 }} />
@@ -825,10 +870,10 @@ export default function CustomerMenu() {
   }
 
   const homeInfoRows = [
-    { icon: "📍", label: t.addressLabel, val: restaurant?.location },
-    { icon: "🕐", label: t.workingHoursLabel, val: restaurant?.working_hours },
-    { icon: "📞", label: t.phoneLabel, val: restaurant?.phone },
-    { icon: "✉️", label: t.emailLabel, val: restaurant?.contact_email },
+    { icon: "📍", label: t.address, val: restaurant?.location },
+    { icon: "🕐", label: t.workingHours, val: restaurant?.working_hours },
+    { icon: "📞", label: t.phone, val: restaurant?.phone },
+    { icon: "✉️", label: t.email, val: restaurant?.contact_email },
   ].filter((r) => r.val);
 
   const heroCarousel =
@@ -883,13 +928,14 @@ export default function CustomerMenu() {
       ))}
       {restaurant?.logo_url && (
         <div style={{ position: "absolute", top: 16, left: 16, width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff" }}>
-          <img src={restaurant.logo_url} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src={restaurant.logo_url} alt={t.logoAlt} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
       )}
       <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 8, alignItems: "center" }}>
-        <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{}} />
+        <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{}} t={t} />
         <button
           type="button"
+          aria-label={t.openMenuAria}
           onClick={() => setShowInfo(true)}
           style={{
             width: 44,
@@ -912,7 +958,7 @@ export default function CustomerMenu() {
         <>
           <button
             type="button"
-            aria-label="Previous slide"
+            aria-label={t.heroPrevSlide}
             onClick={() => setHeroIndex((i) => (i - 1 + heroItems.length) % heroItems.length)}
             style={{
               position: "absolute",
@@ -936,7 +982,7 @@ export default function CustomerMenu() {
           </button>
           <button
             type="button"
-            aria-label="Next slide"
+            aria-label={t.heroNextSlide}
             onClick={() => setHeroIndex((i) => (i + 1) % heroItems.length)}
             style={{
               position: "absolute",
@@ -995,16 +1041,17 @@ export default function CustomerMenu() {
                 <div style={{ display: "flex", alignItems: "center", minHeight: 72 }}>
                   {restaurant?.logo_url ? (
                     <div style={{ width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff", border: "1px solid #e8d5c8" }}>
-                      <img src={restaurant.logo_url} alt="logo" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      <img src={restaurant.logo_url} alt={t.logoAlt} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     </div>
                   ) : (
                     <div style={{ width: 1, height: 1 }} aria-hidden />
                   )}
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} />
+                  <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} t={t} />
                   <button
                     type="button"
+                    aria-label={t.openMenuAria}
                     onClick={() => setShowInfo(true)}
                     style={{
                       width: 44,
@@ -1050,7 +1097,7 @@ export default function CustomerMenu() {
                 }}
               >
                 <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
-                <span>{t.digitalMenuTitle}</span>
+                <span>{t.digitalMenu}</span>
                 <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
               </div>
 
@@ -1105,7 +1152,7 @@ export default function CustomerMenu() {
                 }}
               >
                 <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
-                <span>{t.infoTitle}</span>
+                <span>{t.info}</span>
                 <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
               </div>
               {homeInfoRows.map((row) => (
@@ -1140,10 +1187,10 @@ export default function CustomerMenu() {
                 }}
               >
                 <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
-                <span>{t.serviceChargeTitle}</span>
+                <span>{t.serviceCharge}</span>
                 <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
               </div>
-              <div style={{ textAlign: "center", fontSize: 15, fontWeight: 700, color: "#3d1c12", fontFamily: "DM Mono, monospace" }}>{t.serviceChargeBody}</div>
+              <div style={{ textAlign: "center", fontSize: 15, fontWeight: 700, color: "#3d1c12", fontFamily: "DM Mono, monospace" }}>{t.serviceChargeVal}</div>
             </div>
           </>
         ) : (
@@ -1182,9 +1229,10 @@ export default function CustomerMenu() {
                 ← {t.back}
               </button>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} />
+                <LangPicker lang={lang} setLang={setLang} langMenuOpen={langMenuOpen} setLangMenuOpen={setLangMenuOpen} langMenuWrapRef={langMenuWrapRef} buttonStyle={{ background: "#fff" }} t={t} />
                 <button
                   type="button"
+                  aria-label={t.openMenuAria}
                   onClick={() => setShowInfo(true)}
                   style={{
                     width: 44,
@@ -1313,11 +1361,11 @@ export default function CustomerMenu() {
           <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.4)" }} onClick={() => setShowInfo(false)} />
           <div className="info-sidebar-panel" style={{ position:"absolute", top:0, left:0, width:"85%", maxWidth:340, height:"100%", background:"#fff", overflowY:"auto", display:"flex", flexDirection:"column", boxShadow:"4px 0 24px rgba(61,28,18,0.08)" }}>
             <div style={{ display:"flex", justifyContent:"flex-end", padding:"16px 16px 0" }}>
-              <button type="button" onClick={() => setShowInfo(false)}
+              <button type="button" onClick={() => setShowInfo(false)} aria-label={t.closeBtn}
                 style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, color:"#7a4f3a", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             </div>
 
-            <div style={{ padding:"8px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono", letterSpacing:"0.08em" }}>Əlaqə</div>
+            <div style={{ padding:"8px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.contact}</div>
             {[
               { icon:"📍", val: restaurant?.location, href: restaurant?.location ? `https://maps.google.com/?q=${encodeURIComponent(restaurant.location)}` : null },
               { icon:"📞", val: restaurant?.phone, href: restaurant?.phone ? `tel:${restaurant.phone}` : null },
@@ -1334,18 +1382,18 @@ export default function CustomerMenu() {
 
             {restaurant?.instagram && (
               <>
-                <div style={{ padding:"16px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono", letterSpacing:"0.08em" }}>Social</div>
+                <div style={{ padding:"16px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.social}</div>
                 <a href={`https://instagram.com/${String(restaurant.instagram).replace("@", "")}`} target="_blank" rel="noopener noreferrer"
                   style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", borderBottom:"1px solid #f5f0ea", textDecoration:"none" }}>
                   <span style={{ fontSize:20 }}>📸</span>
-                  <span style={{ flex:1, fontSize:14, color:"#3d1c12" }}>Instagram</span>
+                  <span style={{ flex:1, fontSize:14, color:"#3d1c12" }}>{t.instagram}</span>
                   <span style={{ color:"#b8907a", fontSize:16 }}>→</span>
                 </a>
               </>
             )}
 
             <div style={{ margin:"24px 20px 0", padding:"16px", background:"#f7efe8", borderRadius:12, fontSize:13, color:"#7a4f3a", fontFamily:"DM Mono, monospace", textAlign:"center" }}>
-              {t.serviceChargeBody}
+              {t.serviceChargeVal}
             </div>
           </div>
         </div>
