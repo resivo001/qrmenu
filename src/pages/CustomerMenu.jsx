@@ -325,6 +325,8 @@ function mapCategoryFromDb(row) {
   return {
     id: String(row.id),
     name: row.name ?? "",
+    name_az: row.name_az ?? "",
+    name_ru: row.name_ru ?? "",
     icon: row.icon || "🍽️",
     sort: row.sort_order ?? row.sort ?? 0,
   };
@@ -335,7 +337,11 @@ function mapItemFromDb(row) {
     id: String(row.id),
     cat: String(row.category_id ?? row.cat ?? ""),
     name: row.name ?? "",
+    name_az: row.name_az ?? "",
+    name_ru: row.name_ru ?? "",
     desc: row.description ?? row.desc ?? "",
+    desc_az: row.desc_az ?? "",
+    desc_ru: row.desc_ru ?? "",
     price: Number(row.price ?? 0),
     img: row.image_url ?? row.img ?? "",
     badge: row.badge ?? null,
@@ -354,7 +360,13 @@ function readUrlContext() {
   return { restaurantId, tableNum };
 }
 
-function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
+function localized(obj, field, lang) {
+  if (lang === "AZ") return obj[`${field}_az`] || obj[field] || "";
+  if (lang === "RU") return obj[`${field}_ru`] || obj[field] || "";
+  return obj[field] || "";
+}
+
+function ItemSheet({ item, onClose, onAdd, orderingEnabled, t, lang }) {
   const [qty, setQty] = useState(1);
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
@@ -363,7 +375,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
         <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#f7efe8" }}>
           {item.img ? (
             <div style={{ position:"absolute", inset:0 }}>
-              <img src={item.img} alt={item.name} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+              <img src={item.img} alt={localized(item, "name", lang)} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
             </div>
           ) : (
             <div style={{ width:"100%", height:"100%", background:"#f7efe8" }} />
@@ -377,8 +389,8 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
           <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
         </div>
         <div style={{ padding:"24px 20px 0" }}>
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.2, marginBottom:8 }}>{item.name}</div>
-          <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.6, marginBottom:20 }}>{item.desc}</div>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.2, marginBottom:8 }}>{localized(item, "name", lang)}</div>
+          <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.6, marginBottom:20 }}>{localized(item, "desc", lang)}</div>
           {orderingEnabled ? (
             <div style={{ display:"flex", alignItems:"center", gap:16 }}>
               <div style={{ display:"flex", alignItems:"center", background:"#f7efe8", borderRadius:28, padding:"4px" }}>
@@ -406,7 +418,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t }) {
 // ─────────────────────────────────────────────────────
 // CartSheet — payment-ready with waiter fallback
 // ─────────────────────────────────────────────────────
-function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paymentEnabled, onPlaceOrder, t }) {
+function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paymentEnabled, onPlaceOrder, t, lang }) {
   const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
   const [placed, setPlaced] = useState(false);
   const [placing, setPlacing] = useState(false);
@@ -490,13 +502,13 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f7efe8" }}>
               {item.img ? (
                 <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
-                  <img src={item.img} alt={item.name} style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+                  <img src={item.img} alt={localized(item, "name", lang)} style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
               ) : (
                 <div style={{ width:52, height:52, borderRadius:10, background:"#f7efe8", flexShrink:0 }} />
               )}
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:600, color:"#3d1c12", marginBottom:4 }}>{item.name}</div>
+                <div style={{ fontSize:14, fontWeight:600, color:"#3d1c12", marginBottom:4 }}>{localized(item, "name", lang)}</div>
                 <div style={{ fontSize:14, fontWeight:700, color:"#3d1c12" }}>{fmt(item.price)}</div>
               </div>
               <div style={{ display:"flex", alignItems:"center", background:"#f7efe8", borderRadius:24, padding:"3px" }}>
@@ -563,7 +575,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
   );
 }
 
-function ItemRow({ item, orderingOn, addedId, onAdd, onOpen }) {
+function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
   return (
     <div
       onClick={() => onOpen(item)}
@@ -606,12 +618,12 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen }) {
             letterSpacing: "0.02em",
           }}
         >
-          {item.name}
+          {localized(item, "name", lang)}
         </div>
         <div style={{ fontSize: 14, fontWeight: 700, color: "#8b3a2a", marginBottom: 6, fontFamily: "DM Mono" }}>
           ₼{Number(item.price).toFixed(2)}
         </div>
-        {item.desc && (
+        {localized(item, "desc", lang) && (
           <div
             style={{
               fontSize: 13,
@@ -623,7 +635,7 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen }) {
               overflow: "hidden",
             }}
           >
-            {item.desc}
+            {localized(item, "desc", lang)}
           </div>
         )}
         {orderingOn && (
@@ -657,7 +669,7 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen }) {
         {item.img ? (
           <img
             src={item.img}
-            alt={item.name}
+            alt={localized(item, "name", lang)}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             onError={(e) => {
               e.target.parentElement.style.background = "#f7efe8";
@@ -919,7 +931,7 @@ export default function CustomerMenu() {
             pointerEvents: i === heroSlideIndex ? "auto" : "none",
           }}
         >
-          <img src={item.img} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={item.img} alt={localized(item, "name", lang)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
           <div
             style={{
@@ -934,7 +946,7 @@ export default function CustomerMenu() {
               gap: 8,
             }}
           >
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "DM Sans", letterSpacing: "0.04em", textTransform: "uppercase" }}>{item.name}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "DM Sans", letterSpacing: "0.04em", textTransform: "uppercase" }}>{localized(item, "name", lang)}</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: "#d4956a" }}>₼{Number(item.price).toFixed(2)}</span>
           </div>
         </div>
@@ -1139,7 +1151,7 @@ export default function CustomerMenu() {
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 20 }}>{cat.icon}</span>
-                      <span style={{ textTransform: "uppercase" }}>{cat.name}</span>
+                      <span style={{ textTransform: "uppercase" }}>{localized(cat, "name", lang)}</span>
                     </div>
                     <span style={{ fontSize: 20, color: "#b8907a" }}>›</span>
                   </button>
@@ -1311,7 +1323,7 @@ export default function CustomerMenu() {
                     alignItems: "center",
                   }}
                 >
-                  {cat.name}
+                  {localized(cat, "name", lang)}
                 </button>
               ))}
             </div>
@@ -1339,14 +1351,14 @@ export default function CustomerMenu() {
                         letterSpacing: "0.04em",
                       }}
                     >
-                      {cat.icon} {cat.name}
+                      {cat.icon} {localized(cat, "name", lang)}
                     </span>
                     <span style={{ fontSize: 11, color: "#b8907a", fontFamily: "DM Mono" }}>
                       ({catItems.length})
                     </span>
                   </div>
                   {catItems.map((item) => (
-                    <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
+                    <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} lang={lang} />
                   ))}
                 </div>
               ))}
@@ -1385,6 +1397,7 @@ export default function CustomerMenu() {
           onClose={()=>setSelectedItem(null)}
           onAdd={addToCart}
           t={t}
+          lang={lang}
         />
       )}
       {orderingOn && showCart && (
@@ -1397,6 +1410,7 @@ export default function CustomerMenu() {
           paymentEnabled={paymentOn}
           onPlaceOrder={placeOrder}
           t={t}
+          lang={lang}
         />
       )}
       {showInfo && (
