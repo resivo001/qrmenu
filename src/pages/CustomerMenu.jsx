@@ -851,7 +851,6 @@ export default function CustomerMenu() {
 
   const orderingOn = features.ordering === true;
   const paymentOn = features.payment === true;
-  const bottomPad = orderingOn ? 120 : 72;
   const tagline = restaurant?.location || restaurant?.tagline || "";
   const grouped = cats
     .map((cat) => ({ cat, items: items.filter((i) => i.cat === cat.id) }))
@@ -1093,7 +1092,7 @@ export default function CustomerMenu() {
               ) : null}
             </div>
 
-            <div style={{ padding: "0 16px", background: "#f5ede6" }}>
+            <div style={{ padding: "0 16px", paddingBottom: 80, background: "#f5ede6" }}>
               <div
                 style={{
                   display: "flex",
@@ -1317,7 +1316,7 @@ export default function CustomerMenu() {
               ))}
             </div>
 
-            <div style={{ flex: 1, padding: `0 0 ${bottomPad}px` }}>
+            <div style={{ flex: 1, overflowY: "auto", paddingBottom: orderingOn ? 120 : 80 }}>
               {grouped.map(({ cat, items: catItems }) => (
                 <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop: "100px" }}>
                   <div
@@ -1368,7 +1367,7 @@ export default function CustomerMenu() {
         </div>
       )}
 
-      {!orderingOn && (
+      {!orderingOn && view === "menu" && (
         <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:90, display:"flex", justifyContent:"center", pointerEvents:"none" }}>
           <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(245,237,230,0.98) 60%, transparent)" }}>
             <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#b8907a", letterSpacing:"0.02em", lineHeight:1.5 }}>
