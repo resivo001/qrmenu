@@ -756,39 +756,62 @@ export default function CustomerMenu() {
   useEffect(() => {
     if (view !== "menu" || !cats.length) return;
 
-    const observers = [];
+    // Use a Map to track intersection ratios per section
+    const visibleSections = new Map();
 
-    cats.forEach((cat) => {
+    const observers = cats.map((cat) => {
       const el = document.getElementById(`cat-${cat.id}`);
-      if (!el) return;
+      if (!el) return null;
 
       const obs = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) {
-            setActiveCat(cat.id);
+          visibleSections.set(cat.id, entry.intersectionRatio);
+
+          // Find the section with the highest intersection ratio
+          let maxRatio = 0;
+          let mostVisible = null;
+          visibleSections.forEach((ratio, id) => {
+            if (ratio > maxRatio) {
+              maxRatio = ratio;
+              mostVisible = id;
+            }
+          });
+
+          if (mostVisible) {
+            setActiveCat(mostVisible);
           }
         },
         {
           root: null,
-          rootMargin: "-110px 0px -50% 0px",
-          threshold: 0,
+          rootMargin: "-100px 0px -40% 0px",
+          threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5],
         }
       );
 
       obs.observe(el);
-      observers.push(obs);
-    });
+      return obs;
+    }).filter(Boolean);
 
     return () => observers.forEach((o) => o.disconnect());
   }, [view, cats]);
 
   useEffect(() => {
-    if (!activeCat) return;
-    const tabEl = document.getElementById(`tab-${activeCat}`);
-    if (tabEl) {
-      tabEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
-    }
-  }, [activeCat]);
+    if (!activeCat || view !== "menu") return;
+
+    // Small delay to let DOM settle after activeCat changes
+    const timer = setTimeout(() => {
+      const tabEl = document.getElementById(`tab-${activeCat}`);
+      if (tabEl) {
+        tabEl.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
+      }
+    }, 50);
+
+    return () => clearTimeout(timer);
+  }, [activeCat, view]);
 
   const addToCart = (item, qty=1) => {
     setCart(prev => {
@@ -1248,7 +1271,17 @@ export default function CustomerMenu() {
                 zIndex: 49,
               }}
             >
-              <div style={{ display: "flex", overflowX: "auto", scrollbarWidth: "none", padding: "0 16px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  overflowX: "auto",
+                  scrollBehavior: "smooth",
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  WebkitOverflowScrolling: "touch",
+                  padding: "0 16px",
+                }}
+              >
                 {cats.map((cat) => (
                   <button
                     key={cat.id}
@@ -1256,21 +1289,23 @@ export default function CustomerMenu() {
                     type="button"
                     onClick={() => {
                       setActiveCat(cat.id);
-                      const el = document.getElementById(`cat-${cat.id}`);
-                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      setTimeout(() => {
+                        const el = document.getElementById(`cat-${cat.id}`);
+                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                      }, 50);
                     }}
                     style={{
-                      padding: "12px 14px",
+                      padding: "12px 16px",
                       background: "none",
                       border: "none",
+                      borderBottom: activeCat === cat.id ? "2px solid #8b3a2a" : "2px solid transparent",
+                      color: activeCat === cat.id ? "#8b3a2a" : "#b8907a",
                       cursor: "pointer",
                       fontFamily: "DM Sans",
                       fontSize: 13,
                       fontWeight: 700,
                       flexShrink: 0,
-                      color: activeCat === cat.id ? "#8b3a2a" : "#b8907a",
-                      borderBottom: activeCat === cat.id ? "2px solid #8b3a2a" : "2px solid transparent",
-                      transition: "all 0.2s",
+                      transition: "color 0.2s, border-color 0.2s",
                       letterSpacing: "0.02em",
                       textTransform: "uppercase",
                       whiteSpace: "nowrap",
