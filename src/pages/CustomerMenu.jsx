@@ -1208,7 +1208,8 @@ export default function CustomerMenu() {
             <header
               style={{
                 background: "#fff",
-                padding: "10px 16px",
+                padding: "8px 16px",
+                height: 52,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
@@ -1216,6 +1217,7 @@ export default function CustomerMenu() {
                 position: "sticky",
                 top: 0,
                 zIndex: 50,
+                flexShrink: 0,
               }}
             >
               <button
@@ -1228,12 +1230,14 @@ export default function CustomerMenu() {
                   background: "#f7efe8",
                   border: "1px solid #e8d5c8",
                   borderRadius: 10,
-                  padding: "8px 14px",
+                  padding: "6px 12px",
                   cursor: "pointer",
                   fontSize: 13,
                   fontWeight: 600,
                   color: "#3d1c12",
                   fontFamily: "DM Sans",
+                  height: 36,
+                  whiteSpace: "nowrap",
                 }}
               >
                 ← {t.back}
@@ -1265,61 +1269,57 @@ export default function CustomerMenu() {
             <div
               style={{
                 position: "sticky",
-                top: 53,
+                top: 52,
                 zIndex: 49,
                 background: "#fff",
                 borderBottom: "1px solid #e8d5c8",
+                overflowX: "auto",
+                scrollBehavior: "smooth",
+                scrollbarWidth: "none",
+                WebkitOverflowScrolling: "touch",
+                display: "flex",
+                padding: "0 16px",
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  overflowX: "auto",
-                  scrollBehavior: "smooth",
-                  scrollbarWidth: "none",
-                  msOverflowStyle: "none",
-                  WebkitOverflowScrolling: "touch",
-                  padding: "0 16px",
-                }}
-              >
-                {cats.map((cat) => (
-                  <button
-                    key={cat.id}
-                    id={`tab-${cat.id}`}
-                    type="button"
-                    onClick={() => {
-                      setActiveCat(cat.id);
-                      setTimeout(() => {
-                        const el = document.getElementById(`cat-${cat.id}`);
-                        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                      }, 50);
-                    }}
-                    style={{
-                      padding: "12px 16px",
-                      background: "none",
-                      border: "none",
-                      borderBottom: activeCat === cat.id ? "2px solid #8b3a2a" : "2px solid transparent",
-                      color: activeCat === cat.id ? "#8b3a2a" : "#b8907a",
-                      cursor: "pointer",
-                      fontFamily: "DM Sans",
-                      fontSize: 13,
-                      fontWeight: 700,
-                      flexShrink: 0,
-                      transition: "color 0.2s, border-color 0.2s",
-                      letterSpacing: "0.02em",
-                      textTransform: "uppercase",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-              </div>
+              {cats.map((cat) => (
+                <button
+                  key={cat.id}
+                  id={`tab-${cat.id}`}
+                  type="button"
+                  onClick={() => {
+                    setActiveCat(cat.id);
+                    setTimeout(() => {
+                      document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
+                  }}
+                  style={{
+                    padding: "10px 16px",
+                    background: "none",
+                    border: "none",
+                    borderBottom: activeCat === cat.id ? "2px solid #8b3a2a" : "2px solid transparent",
+                    color: activeCat === cat.id ? "#8b3a2a" : "#b8907a",
+                    cursor: "pointer",
+                    fontFamily: "DM Sans",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    flexShrink: 0,
+                    transition: "color 0.2s, border-color 0.2s",
+                    letterSpacing: "0.02em",
+                    textTransform: "uppercase",
+                    whiteSpace: "nowrap",
+                    height: 44,
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  {cat.name}
+                </button>
+              ))}
             </div>
 
             <div style={{ flex: 1, padding: `0 0 ${bottomPad}px` }}>
               {grouped.map(({ cat, items: catItems }) => (
-                <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop: "110px" }}>
+                <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop: "100px" }}>
                   <div
                     style={{
                       padding: "20px 16px 10px",
