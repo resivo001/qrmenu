@@ -1264,11 +1264,11 @@ export default function CustomerMenu() {
 
             <div
               style={{
-                background: "#fff",
-                borderBottom: "1px solid #e8d5c8",
                 position: "sticky",
                 top: 53,
                 zIndex: 49,
+                background: "#fff",
+                borderBottom: "1px solid #e8d5c8",
               }}
             >
               <div
@@ -1320,14 +1320,35 @@ export default function CustomerMenu() {
             <div style={{ flex: 1, padding: `0 0 ${bottomPad}px` }}>
               {grouped.map(({ cat, items: catItems }) => (
                 <div key={cat.id} id={`cat-${cat.id}`} style={{ scrollMarginTop: "110px" }}>
-                  <div style={{ padding: "20px 16px 8px", borderBottom: "1px solid #e8d5c8", background: "#f5ede6" }}>
-                    <span style={{ fontFamily: "DM Sans", fontSize: 18, fontWeight: 800, color: "#3d1c12", textTransform: "uppercase", letterSpacing: "0.03em" }}>{cat.name}</span>
+                  <div
+                    style={{
+                      padding: "20px 16px 10px",
+                      borderBottom: "1px solid #e8d5c8",
+                      background: "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontFamily: "DM Sans",
+                        fontSize: 15,
+                        fontWeight: 800,
+                        color: "#3d1c12",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      {cat.icon} {cat.name}
+                    </span>
+                    <span style={{ fontSize: 11, color: "#b8907a", fontFamily: "DM Mono" }}>
+                      ({catItems.length})
+                    </span>
                   </div>
-                  <div>
-                    {catItems.map((item) => (
-                      <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
-                    ))}
-                  </div>
+                  {catItems.map((item) => (
+                    <ItemRow key={item.id} item={item} orderingOn={orderingOn} addedId={addedId} onAdd={addToCart} onOpen={setSelectedItem} />
+                  ))}
                 </div>
               ))}
             </div>
