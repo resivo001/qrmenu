@@ -754,22 +754,41 @@ export default function CustomerMenu() {
   }, [restaurantId]);
 
   useEffect(() => {
-    if (view !== "menu" || !cats.length) return undefined;
+    if (view !== "menu" || !cats.length) return;
+
     const observers = [];
+
     cats.forEach((cat) => {
       const el = document.getElementById(`cat-${cat.id}`);
       if (!el) return;
+
       const obs = new IntersectionObserver(
         ([entry]) => {
-          if (entry.isIntersecting) setActiveCat(cat.id);
+          if (entry.isIntersecting) {
+            setActiveCat(cat.id);
+          }
         },
-        { threshold: 0.2, rootMargin: "-100px 0px -60% 0px" }
+        {
+          root: null,
+          rootMargin: "-110px 0px -50% 0px",
+          threshold: 0,
+        }
       );
+
       obs.observe(el);
       observers.push(obs);
     });
+
     return () => observers.forEach((o) => o.disconnect());
-  }, [cats, view]);
+  }, [view, cats]);
+
+  useEffect(() => {
+    if (!activeCat) return;
+    const tabEl = document.getElementById(`tab-${activeCat}`);
+    if (tabEl) {
+      tabEl.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "center" });
+    }
+  }, [activeCat]);
 
   const addToCart = (item, qty=1) => {
     setCart(prev => {
@@ -1233,10 +1252,12 @@ export default function CustomerMenu() {
                 {cats.map((cat) => (
                   <button
                     key={cat.id}
+                    id={`tab-${cat.id}`}
                     type="button"
                     onClick={() => {
                       setActiveCat(cat.id);
-                      document.getElementById(`cat-${cat.id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                      const el = document.getElementById(`cat-${cat.id}`);
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
                     }}
                     style={{
                       padding: "12px 14px",
