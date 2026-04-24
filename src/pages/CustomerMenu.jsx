@@ -8,17 +8,17 @@ const GS = () => (
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&family=DM+Sans:wght@300;400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html {
-      background: #f5ede6;
+      background: #F5F5F0;
       min-height: 100%;
     }
     body {
-      background: #f5ede6;
+      background: #F5F5F0;
       min-height: 100%;
       font-family: 'DM Sans', sans-serif;
       -webkit-font-smoothing: antialiased;
     }
     #root {
-      background: #f5ede6;
+      background: #F5F5F0;
       min-height: 100vh;
     }
     ::-webkit-scrollbar { display: none; }
@@ -36,7 +36,7 @@ const GS = () => (
     .add-btn:active { transform: scale(0.92); }
     .menu-spinner {
       width: 36px; height: 36px; border-radius: 50%;
-      border: 3px solid #e8d5c8; border-top-color: #8b3a2a;
+      border: 3px solid #d8e2ea; border-top-color: #16314F;
       animation: spin 0.7s linear infinite;
     }
     @keyframes slideFromLeft {
@@ -246,12 +246,12 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
           height: 44,
           padding: 0,
           borderRadius: 12,
-          border: "1px solid #e8d5c8",
+          border: "1px solid #d8e2ea",
           background: "rgba(255,255,255,0.92)",
           cursor: "pointer",
           fontSize: 22,
           lineHeight: 1,
-          color: "#3d1c12",
+          color: "#0d1f2d",
           ...buttonStyle,
         }}
       >
@@ -267,9 +267,9 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
             marginTop: 6,
             minWidth: 188,
             background: "#fff",
-            border: "1px solid #e8d5c8",
+            border: "1px solid #d8e2ea",
             borderRadius: 12,
-            boxShadow: "0 8px 24px rgba(61,28,18,0.1)",
+            boxShadow: "0 8px 24px rgba(13,31,45,0.1)",
             padding: "6px 0",
             zIndex: 60,
           }}
@@ -296,7 +296,7 @@ function LangPicker({ lang, setLang, langMenuOpen, setLangMenuOpen, langMenuWrap
                 fontFamily: "DM Sans, sans-serif",
                 fontSize: 13,
                 fontWeight: 500,
-                color: "#3d1c12",
+                color: "#0d1f2d",
                 textAlign: "left",
               }}
             >
@@ -370,43 +370,43 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t, lang }) {
   const [qty, setQty] = useState(1);
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.55)" }} onClick={onClose} className="fade-in" />
+      <div style={{ position:"absolute", inset:0, background:"rgba(13,31,45,0.55)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"88vh", overflowY:"auto", paddingBottom:32 }}>
-        <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#f7efe8" }}>
+        <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#eef1f4" }}>
           {item.img ? (
             <div style={{ position:"absolute", inset:0 }}>
               <img src={item.img} alt={localized(item, "name", lang)} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
             </div>
           ) : (
-            <div style={{ width:"100%", height:"100%", background:"#f7efe8" }} />
+            <div style={{ width:"100%", height:"100%", background:"#eef1f4" }} />
           )}
-          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(0,0,0,0.3) 0%, transparent 60%)" }} />
+          <div style={{ position:"absolute", inset:0, background:"linear-gradient(to top, rgba(13,31,45,0.3) 0%, transparent 60%)" }} />
           {item.badge && (
-            <div style={{ position:"absolute", top:16, left:16, background:"rgba(255,255,255,0.95)", borderRadius:20, padding:"4px 12px", fontSize:11, fontWeight:600, color:"#3d1c12" }}>
+            <div style={{ position:"absolute", top:16, left:16, background:"rgba(255,255,255,0.95)", borderRadius:20, padding:"4px 12px", fontSize:11, fontWeight:600, color:"#0d1f2d" }}>
               {item.badge}
             </div>
           )}
-          <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#3d1c12" }}>✕</button>
+          <button type="button" onClick={onClose} style={{ position:"absolute", top:16, right:16, width:32, height:32, borderRadius:"50%", background:"rgba(255,255,255,0.9)", border:"none", cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#0d1f2d" }}>✕</button>
         </div>
         <div style={{ padding:"24px 20px 0" }}>
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", lineHeight:1.2, marginBottom:8 }}>{localized(item, "name", lang)}</div>
-          <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.6, marginBottom:20 }}>{localized(item, "desc", lang)}</div>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#0d1f2d", lineHeight:1.2, marginBottom:8 }}>{localized(item, "name", lang)}</div>
+          <div style={{ fontSize:14, color:"#4a6274", lineHeight:1.6, marginBottom:20 }}>{localized(item, "desc", lang)}</div>
           {orderingEnabled ? (
             <div style={{ display:"flex", alignItems:"center", gap:16 }}>
-              <div style={{ display:"flex", alignItems:"center", background:"#f7efe8", borderRadius:28, padding:"4px" }}>
-                <button type="button" onClick={()=>setQty(q=>Math.max(1,q-1))} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:qty===1?"transparent":"#fff", cursor:"pointer", fontSize:18, fontWeight:600, color:"#3d1c12", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:qty===1?"none":"0 1px 4px rgba(0,0,0,0.1)" }}>−</button>
-                <span style={{ width:36, textAlign:"center", fontWeight:700, fontSize:16, color:"#3d1c12" }}>{qty}</span>
-                <button type="button" onClick={()=>setQty(q=>q+1)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:"#8b3a2a", cursor:"pointer", fontSize:18, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+              <div style={{ display:"flex", alignItems:"center", background:"#eef1f4", borderRadius:28, padding:"4px" }}>
+                <button type="button" onClick={()=>setQty(q=>Math.max(1,q-1))} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:qty===1?"transparent":"#fff", cursor:"pointer", fontSize:18, fontWeight:600, color:"#0d1f2d", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:qty===1?"none":"0 1px 4px rgba(13,31,45,0.1)" }}>−</button>
+                <span style={{ width:36, textAlign:"center", fontWeight:700, fontSize:16, color:"#0d1f2d" }}>{qty}</span>
+                <button type="button" onClick={()=>setQty(q=>q+1)} style={{ width:36, height:36, borderRadius:"50%", border:"none", background:"#16314F", cursor:"pointer", fontSize:18, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
               </div>
               <button type="button" onClick={()=>{ onAdd(item, qty); onClose(); }}
-                style={{ flex:1, background:"#8b3a2a", color:"#fff", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                style={{ flex:1, background:"#16314F", color:"#fff", border:"none", borderRadius:28, padding:"15px 24px", fontSize:14, fontWeight:600, cursor:"pointer", fontFamily:"DM Sans", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
                 <span>{t.addToOrder}</span>
-                <span style={{ fontWeight:700, color:"#d4956a" }}>{fmt(item.price * qty)}</span>
+                <span style={{ fontWeight:700, color:"#4a7fa5" }}>{fmt(item.price * qty)}</span>
               </button>
             </div>
           ) : (
-            <div style={{ paddingTop:4, fontSize:13, color:"#b8907a", textAlign:"center", lineHeight:1.5 }}>
-              {t.askWaiterOrder} · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#3d1c12" }}>{fmt(item.price)}</span>
+            <div style={{ paddingTop:4, fontSize:13, color:"#8da5b4", textAlign:"center", lineHeight:1.5 }}>
+              {t.askWaiterOrder} · <span style={{ fontFamily:"Cormorant Garamond", fontSize:18, fontWeight:700, color:"#0d1f2d" }}>{fmt(item.price)}</span>
             </div>
           )}
         </div>
@@ -475,57 +475,57 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
   const busy = placing || paying;
 
   if (placed) return (
-    <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(61,28,18,0.6)" }}>
+    <div style={{ position:"fixed", inset:0, zIndex:300, display:"flex", alignItems:"center", justifyContent:"center", background:"rgba(13,31,45,0.6)" }}>
       <div className="fade-up" style={{ background:"#fff", borderRadius:24, padding:"40px 32px", textAlign:"center", margin:24, maxWidth:320 }}>
         <div style={{ fontSize:52, marginBottom:16 }}>✅</div>
-        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#3d1c12", marginBottom:8 }}>
+        <div style={{ fontFamily:"Cormorant Garamond", fontSize:28, fontWeight:700, color:"#0d1f2d", marginBottom:8 }}>
           {canPay ? t.orderPlacedTitle : t.orderSentTitle}
         </div>
-        <div style={{ fontSize:14, color:"#7a4f3a", marginBottom:24, lineHeight:1.5 }}>{t.successBody}</div>
-        <div style={{ fontSize:13, color:"#b8907a", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
+        <div style={{ fontSize:14, color:"#4a6274", marginBottom:24, lineHeight:1.5 }}>{t.successBody}</div>
+        <div style={{ fontSize:13, color:"#8da5b4", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
       </div>
     </div>
   );
 
   return (
     <div style={{ position:"fixed", inset:0, zIndex:200, display:"flex", flexDirection:"column", justifyContent:"flex-end" }}>
-      <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.55)" }} onClick={onClose} className="fade-in" />
+      <div style={{ position:"absolute", inset:0, background:"rgba(13,31,45,0.55)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"85vh", display:"flex", flexDirection:"column" }}>
         <div style={{ padding:"20px 20px 0", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#3d1c12" }}>{t.yourOrder}</div>
-          <button type="button" onClick={onClose} style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#7a4f3a" }}>✕</button>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:26, fontWeight:700, color:"#0d1f2d" }}>{t.yourOrder}</div>
+          <button type="button" onClick={onClose} style={{ background:"#eef1f4", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, display:"flex", alignItems:"center", justifyContent:"center", color:"#4a6274" }}>✕</button>
         </div>
-        <div style={{ fontSize:12, color:"#b8907a", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
+        <div style={{ fontSize:12, color:"#8da5b4", padding:"4px 20px 16px", fontFamily:"DM Mono, monospace" }}>{t.tableLabel} {tableNumber}</div>
 
         <div style={{ overflowY:"auto", flex:1, padding:"0 20px" }}>
           {cart.map(item=>(
-            <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #f7efe8" }}>
+            <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #eef1f4" }}>
               {item.img ? (
-                <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#f7efe8" }}>
+                <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#eef1f4" }}>
                   <img src={item.img} alt={localized(item, "name", lang)} style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
               ) : (
-                <div style={{ width:52, height:52, borderRadius:10, background:"#f7efe8", flexShrink:0 }} />
+                <div style={{ width:52, height:52, borderRadius:10, background:"#eef1f4", flexShrink:0 }} />
               )}
               <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:600, color:"#3d1c12", marginBottom:4 }}>{localized(item, "name", lang)}</div>
-                <div style={{ fontSize:14, fontWeight:700, color:"#3d1c12" }}>{fmt(item.price)}</div>
+                <div style={{ fontSize:14, fontWeight:600, color:"#0d1f2d", marginBottom:4 }}>{localized(item, "name", lang)}</div>
+                <div style={{ fontSize:14, fontWeight:700, color:"#0d1f2d" }}>{fmt(item.price)}</div>
               </div>
-              <div style={{ display:"flex", alignItems:"center", background:"#f7efe8", borderRadius:24, padding:"3px" }}>
-                <button type="button" onClick={()=>onQtyChange(item.id, item.qty-1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:item.qty===1?"transparent":"#fff", cursor:"pointer", fontSize:15, color:"#3d1c12", display:"flex", alignItems:"center", justifyContent:"center" }}>
+              <div style={{ display:"flex", alignItems:"center", background:"#eef1f4", borderRadius:24, padding:"3px" }}>
+                <button type="button" onClick={()=>onQtyChange(item.id, item.qty-1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:item.qty===1?"transparent":"#fff", cursor:"pointer", fontSize:15, color:"#0d1f2d", display:"flex", alignItems:"center", justifyContent:"center" }}>
                   {item.qty===1?"🗑":"−"}
                 </button>
-                <span style={{ width:28, textAlign:"center", fontSize:14, fontWeight:700, color:"#3d1c12" }}>{item.qty}</span>
-                <button type="button" onClick={()=>onQtyChange(item.id, item.qty+1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:"#8b3a2a", cursor:"pointer", fontSize:15, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
+                <span style={{ width:28, textAlign:"center", fontSize:14, fontWeight:700, color:"#0d1f2d" }}>{item.qty}</span>
+                <button type="button" onClick={()=>onQtyChange(item.id, item.qty+1)} style={{ width:28, height:28, borderRadius:"50%", border:"none", background:"#16314F", cursor:"pointer", fontSize:15, color:"#fff", display:"flex", alignItems:"center", justifyContent:"center" }}>+</button>
               </div>
             </div>
           ))}
         </div>
 
-        <div style={{ padding:"16px 20px 32px", borderTop:"1px solid #f7efe8" }}>
+        <div style={{ padding:"16px 20px 32px", borderTop:"1px solid #eef1f4" }}>
           <div style={{ display:"flex", justifyContent:"space-between", marginBottom:16 }}>
-            <span style={{ fontSize:14, color:"#7a4f3a" }}>{t.total}</span>
-            <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#3d1c12" }}>{fmt(total)}</span>
+            <span style={{ fontSize:14, color:"#4a6274" }}>{t.total}</span>
+            <span style={{ fontFamily:"Cormorant Garamond", fontSize:24, fontWeight:700, color:"#0d1f2d" }}>{fmt(total)}</span>
           </div>
 
           {orderError && (
@@ -540,7 +540,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
               type="button"
               disabled={busy}
               onClick={()=>void handlePayment()}
-              style={{ width:"100%", background:"#8b3a2a", color:"#fff", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:busy?"wait":"pointer", fontFamily:"DM Sans", opacity:busy?0.85:1, marginBottom:10 }}>
+              style={{ width:"100%", background:"#16314F", color:"#fff", border:"none", borderRadius:28, padding:"16px", fontSize:15, fontWeight:600, cursor:busy?"wait":"pointer", fontFamily:"DM Sans", opacity:busy?0.85:1, marginBottom:10 }}>
               {paying ? t.payingSubtitle : t.payNowBtn}
             </button>
           )}
@@ -552,9 +552,9 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             onClick={()=>void handleWaiterOrder()}
             style={{
               width:"100%",
-              background: canPay ? "transparent" : "#8b3a2a",
-              color: canPay ? "#7a4f3a" : "#fff",
-              border: canPay ? "1px solid #e8d5c8" : "none",
+              background: canPay ? "transparent" : "#16314F",
+              color: canPay ? "#4a6274" : "#fff",
+              border: canPay ? "1px solid #d8e2ea" : "none",
               borderRadius:28,
               padding:"16px",
               fontSize: canPay ? 13 : 15,
@@ -566,7 +566,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             {placing ? t.sending : (canPay ? t.sendWaiterBtn : t.placeOrderBtn)}
           </button>
 
-          <div style={{ textAlign:"center", fontSize:12, color:"#b8907a", marginTop:10 }}>
+          <div style={{ textAlign:"center", fontSize:12, color:"#8da5b4", marginTop:10 }}>
             {canPay ? t.paymentSubtitle : t.waiterSubtitle}
           </div>
         </div>
@@ -584,7 +584,7 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
         alignItems: "flex-start",
         gap: 14,
         padding: "18px 16px",
-        borderBottom: "1px dashed #e8d5c8",
+        borderBottom: "1px dashed #d8e2ea",
         cursor: "pointer",
         background: "#fff",
       }}
@@ -596,8 +596,8 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
               display: "inline-block",
               fontSize: 10,
               fontWeight: 700,
-              color: "#8b3a2a",
-              background: "#f7efe8",
+              color: "#16314F",
+              background: "#eef1f4",
               borderRadius: 20,
               padding: "2px 8px",
               marginBottom: 6,
@@ -611,7 +611,7 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
             fontFamily: "DM Sans",
             fontSize: 15,
             fontWeight: 800,
-            color: "#3d1c12",
+            color: "#0d1f2d",
             lineHeight: 1.3,
             marginBottom: 6,
             textTransform: "uppercase",
@@ -620,14 +620,14 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
         >
           {localized(item, "name", lang)}
         </div>
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#8b3a2a", marginBottom: 6, fontFamily: "DM Mono" }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#16314F", marginBottom: 6, fontFamily: "DM Mono" }}>
           ₼{Number(item.price).toFixed(2)}
         </div>
         {localized(item, "desc", lang) && (
           <div
             style={{
               fontSize: 13,
-              color: "#7a4f3a",
+              color: "#4a6274",
               lineHeight: 1.6,
               display: "-webkit-box",
               WebkitLineClamp: 3,
@@ -650,14 +650,14 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
               width: 36,
               height: 36,
               borderRadius: 10,
-              border: "1.5px solid #e8d5c8",
+              border: "1.5px solid #d8e2ea",
               cursor: "pointer",
               fontSize: 18,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               background: addedId === item.id ? "#4caf50" : "#fff",
-              color: addedId === item.id ? "#fff" : "#3d1c12",
+              color: addedId === item.id ? "#fff" : "#0d1f2d",
               transition: "all 0.15s",
             }}
           >
@@ -665,14 +665,14 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
           </button>
         )}
       </div>
-      <div style={{ width: 110, height: 110, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#f7efe8" }}>
+      <div style={{ width: 110, height: 110, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#eef1f4" }}>
         {item.img ? (
           <img
             src={item.img}
             alt={localized(item, "name", lang)}
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             onError={(e) => {
-              e.target.parentElement.style.background = "#f7efe8";
+              e.target.parentElement.style.background = "#eef1f4";
               e.target.style.display = "none";
             }}
           />
@@ -870,11 +870,11 @@ export default function CustomerMenu() {
 
   if (loading) {
     return (
-      <div style={{ background:"#f5ede6", minHeight:"100vh", width:"100%" }}>
-        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
+      <div style={{ background:"#F5F5F0", minHeight:"100vh", width:"100%" }}>
+        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#F5F5F0", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", position:"relative" }}>
           <GS />
           <div className="menu-spinner" aria-hidden />
-          <div style={{ marginTop:16, fontSize:13, color:"#b8907a", fontFamily:"DM Sans" }}>{t.loading}</div>
+          <div style={{ marginTop:16, fontSize:13, color:"#8da5b4", fontFamily:"DM Sans" }}>{t.loading}</div>
         </div>
       </div>
     );
@@ -882,11 +882,11 @@ export default function CustomerMenu() {
 
   if (loadError || !restaurant) {
     return (
-      <div style={{ background:"#f5ede6", minHeight:"100vh", width:"100%" }}>
-        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#f5ede6", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
+      <div style={{ background:"#F5F5F0", minHeight:"100vh", width:"100%" }}>
+        <div style={{ maxWidth:480, margin:"0 auto", minHeight:"100vh", background:"#F5F5F0", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:24, textAlign:"center", position:"relative" }}>
           <GS />
-          <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#3d1c12", marginBottom:8 }}>{t.loadFailTitle}</div>
-          <div style={{ fontSize:14, color:"#7a4f3a", lineHeight:1.5 }}>{loadError === LOAD_ERR_RESTAURANT_NOT_FOUND ? t.restaurantNotFound : loadError}</div>
+          <div style={{ fontFamily:"Cormorant Garamond", fontSize:22, fontWeight:700, color:"#0d1f2d", marginBottom:8 }}>{t.loadFailTitle}</div>
+          <div style={{ fontSize:14, color:"#4a6274", lineHeight:1.5 }}>{loadError === LOAD_ERR_RESTAURANT_NOT_FOUND ? t.restaurantNotFound : loadError}</div>
         </div>
       </div>
     );
@@ -904,7 +904,7 @@ export default function CustomerMenu() {
   const heroCarousel =
     heroItems.length > 0 ? (
     <div
-      style={{ position: "relative", width: "100%", height: 320, overflow: "hidden", background: "#1a140e", flexShrink: 0, touchAction: "pan-y" }}
+      style={{ position: "relative", width: "100%", height: 320, overflow: "hidden", background: "#0d1f2d", flexShrink: 0, touchAction: "pan-y" }}
       onTouchStart={(e) => {
         heroTouchStartX.current = e.touches[0]?.clientX ?? null;
       }}
@@ -932,13 +932,13 @@ export default function CustomerMenu() {
           }}
         >
           <img src={item.img} alt={localized(item, "name", lang)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 55%)" }} />
+          <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(13,31,45,0.6) 0%, transparent 55%)" }} />
           <div
             style={{
               position: "absolute",
               bottom: 20,
               left: 16,
-              background: "rgba(0,0,0,0.75)",
+              background: "rgba(13,31,45,0.8)",
               borderRadius: 20,
               padding: "5px 14px",
               display: "flex",
@@ -947,7 +947,7 @@ export default function CustomerMenu() {
             }}
           >
             <span style={{ fontSize: 12, fontWeight: 700, color: "#fff", fontFamily: "DM Sans", letterSpacing: "0.04em", textTransform: "uppercase" }}>{localized(item, "name", lang)}</span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#d4956a" }}>₼{Number(item.price).toFixed(2)}</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#4a7fa5" }}>₼{Number(item.price).toFixed(2)}</span>
           </div>
         </div>
       ))}
@@ -972,7 +972,7 @@ export default function CustomerMenu() {
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            color: "#3d1c12",
+            color: "#0d1f2d",
           }}
         >
           ☰
@@ -991,7 +991,7 @@ export default function CustomerMenu() {
               width: 36,
               height: 36,
               borderRadius: 8,
-              background: "rgba(0,0,0,0.45)",
+              background: "rgba(13,31,45,0.55)",
               border: "none",
               color: "#fff",
               cursor: "pointer",
@@ -1014,7 +1014,7 @@ export default function CustomerMenu() {
               width: 36,
               height: 36,
               borderRadius: 8,
-              background: "rgba(0,0,0,0.45)",
+              background: "rgba(13,31,45,0.55)",
               border: "none",
               color: "#fff",
               cursor: "pointer",
@@ -1032,13 +1032,13 @@ export default function CustomerMenu() {
     ) : null;
 
   return (
-    <div style={{ background: "#f5ede6", minHeight: "100vh", width: "100%" }}>
+    <div style={{ background: "#F5F5F0", minHeight: "100vh", width: "100%" }}>
       <div
         style={{
           maxWidth: 480,
           margin: "0 auto",
           minHeight: "100vh",
-          background: view === "menu" ? "#f5ede6" : "#f5ede6",
+          background: view === "menu" ? "#F5F5F0" : "#F5F5F0",
           display: "flex",
           flexDirection: "column",
           position: "relative",
@@ -1056,13 +1056,13 @@ export default function CustomerMenu() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  borderBottom: "1px solid #e8d5c8",
+                  borderBottom: "1px solid #d8e2ea",
                   flexShrink: 0,
                 }}
               >
                 <div style={{ display: "flex", alignItems: "center", minHeight: 72 }}>
                   {restaurant?.logo_url ? (
-                    <div style={{ width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff", border: "1px solid #e8d5c8" }}>
+                    <div style={{ width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff", border: "1px solid #d8e2ea" }}>
                       <img src={restaurant.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     </div>
                   ) : (
@@ -1079,13 +1079,13 @@ export default function CustomerMenu() {
                       height: 44,
                       borderRadius: 12,
                       background: "#fff",
-                      border: "1px solid #e8d5c8",
+                      border: "1px solid #d8e2ea",
                       cursor: "pointer",
                       fontSize: 18,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      color: "#3d1c12",
+                      color: "#0d1f2d",
                     }}
                   >
                     ☰
@@ -1095,31 +1095,31 @@ export default function CustomerMenu() {
             )}
 
             <div style={{ background: "#fff", padding: "20px 16px 16px" }}>
-              <div style={{ fontFamily: "Cormorant Garamond", fontSize: 30, fontWeight: 800, color: "#3d1c12", lineHeight: 1.1 }}>{restaurant.name}</div>
-              {tagline ? <div style={{ fontSize: 14, color: "#b8907a", marginTop: 4 }}>{tagline}</div> : null}
+              <div style={{ fontFamily: "Cormorant Garamond", fontSize: 30, fontWeight: 800, color: "#0d1f2d", lineHeight: 1.1 }}>{restaurant.name}</div>
+              {tagline ? <div style={{ fontSize: 14, color: "#8da5b4", marginTop: 4 }}>{tagline}</div> : null}
               {orderingOn ? (
-                <div style={{ fontSize: 11, color: "#b8907a", marginTop: 4, fontFamily: "DM Mono" }}>
+                <div style={{ fontSize: 11, color: "#8da5b4", marginTop: 4, fontFamily: "DM Mono" }}>
                   {t.tableLabel} {tableNum}
                 </div>
               ) : null}
             </div>
 
-            <div style={{ padding: "0 16px", paddingBottom: 80, background: "#f5ede6" }}>
+            <div style={{ padding: "0 16px", paddingBottom: 80, background: "#F5F5F0" }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
                   padding: "16px 0 12px",
-                  color: "#b8907a",
+                  color: "#8da5b4",
                   fontSize: 11,
                   fontFamily: "DM Mono, monospace",
                   letterSpacing: "0.12em",
                 }}
               >
-                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <div style={{ flex: 1, height: 1, background: "#d8e2ea" }} />
                 <span>{t.digitalMenu}</span>
-                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <div style={{ flex: 1, height: 1, background: "#d8e2ea" }} />
               </div>
 
               <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
@@ -1138,43 +1138,43 @@ export default function CustomerMenu() {
                       width: "100%",
                       padding: "18px 20px",
                       background: "#fff",
-                      border: "1px solid #e8d5c8",
+                      border: "1px solid #d8e2ea",
                       borderRadius: 14,
                       cursor: "pointer",
                       fontFamily: "DM Sans",
                       fontSize: 15,
                       fontWeight: 700,
-                      color: "#3d1c12",
+                      color: "#0d1f2d",
                       letterSpacing: "0.02em",
-                      boxShadow: "0 1px 4px rgba(61,28,18,0.05)",
+                      boxShadow: "0 1px 4px rgba(13,31,45,0.05)",
                     }}
                   >
                     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                       <span style={{ fontSize: 20 }}>{cat.icon}</span>
                       <span style={{ textTransform: "uppercase" }}>{localized(cat, "name", lang)}</span>
                     </div>
-                    <span style={{ fontSize: 20, color: "#b8907a" }}>›</span>
+                    <span style={{ fontSize: 20, color: "#8da5b4" }}>›</span>
                   </button>
                 ))}
               </div>
             </div>
 
-            <div style={{ padding: "0 16px 32px", background: "#f5ede6" }}>
+            <div style={{ padding: "0 16px 32px", background: "#F5F5F0" }}>
               <div
                 style={{
                   display: "flex",
                   alignItems: "center",
                   gap: 10,
                   padding: "16px 0 16px",
-                  color: "#b8907a",
+                  color: "#8da5b4",
                   fontSize: 11,
                   fontFamily: "DM Mono, monospace",
                   letterSpacing: "0.12em",
                 }}
               >
-                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <div style={{ flex: 1, height: 1, background: "#d8e2ea" }} />
                 <span>{t.info}</span>
-                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <div style={{ flex: 1, height: 1, background: "#d8e2ea" }} />
               </div>
               {homeInfoRows.map((row) => (
                 <div
@@ -1183,14 +1183,14 @@ export default function CustomerMenu() {
                     display: "flex",
                     gap: 14,
                     padding: "14px 0",
-                    borderBottom: "1px solid #f0e6dc",
+                    borderBottom: "1px solid #e2eaf0",
                     alignItems: "flex-start",
                   }}
                 >
                   <span style={{ fontSize: 22, flexShrink: 0 }}>{row.icon}</span>
                   <div>
-                    <div style={{ fontSize: 11, color: "#b8907a", fontFamily: "DM Mono, monospace", marginBottom: 3 }}>{row.label}:</div>
-                    <div style={{ fontSize: 15, color: "#3d1c12", fontWeight: 500 }}>{row.val}</div>
+                    <div style={{ fontSize: 11, color: "#8da5b4", fontFamily: "DM Mono, monospace", marginBottom: 3 }}>{row.label}:</div>
+                    <div style={{ fontSize: 15, color: "#0d1f2d", fontWeight: 500 }}>{row.val}</div>
                   </div>
                 </div>
               ))}
@@ -1201,17 +1201,17 @@ export default function CustomerMenu() {
                   alignItems: "center",
                   gap: 10,
                   padding: "20px 0 12px",
-                  color: "#b8907a",
+                  color: "#8da5b4",
                   fontSize: 11,
                   fontFamily: "DM Mono, monospace",
                   letterSpacing: "0.12em",
                 }}
               >
-                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <div style={{ flex: 1, height: 1, background: "#d8e2ea" }} />
                 <span>{t.serviceCharge}</span>
-                <div style={{ flex: 1, height: 1, background: "#e8d5c8" }} />
+                <div style={{ flex: 1, height: 1, background: "#d8e2ea" }} />
               </div>
-              <div style={{ textAlign: "center", fontSize: 15, fontWeight: 700, color: "#3d1c12", fontFamily: "DM Mono, monospace" }}>{t.serviceChargeVal}</div>
+              <div style={{ textAlign: "center", fontSize: 15, fontWeight: 700, color: "#0d1f2d", fontFamily: "DM Mono, monospace" }}>{t.serviceChargeVal}</div>
             </div>
           </>
         ) : (
@@ -1224,7 +1224,7 @@ export default function CustomerMenu() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                borderBottom: "1px solid #e8d5c8",
+                borderBottom: "1px solid #d8e2ea",
                 position: "sticky",
                 top: 0,
                 zIndex: 50,
@@ -1238,14 +1238,14 @@ export default function CustomerMenu() {
                   display: "flex",
                   alignItems: "center",
                   gap: 6,
-                  background: "#f7efe8",
-                  border: "1px solid #e8d5c8",
+                  background: "#eef1f4",
+                  border: "1px solid #d8e2ea",
                   borderRadius: 10,
                   padding: "6px 12px",
                   cursor: "pointer",
                   fontSize: 13,
                   fontWeight: 600,
-                  color: "#3d1c12",
+                  color: "#0d1f2d",
                   fontFamily: "DM Sans",
                   height: 36,
                   whiteSpace: "nowrap",
@@ -1263,13 +1263,13 @@ export default function CustomerMenu() {
                     height: 44,
                     borderRadius: 12,
                     background: "#fff",
-                    border: "1px solid #e8d5c8",
+                    border: "1px solid #d8e2ea",
                     cursor: "pointer",
                     fontSize: 18,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    color: "#3d1c12",
+                    color: "#0d1f2d",
                   }}
                 >
                   ☰
@@ -1283,7 +1283,7 @@ export default function CustomerMenu() {
                 top: 52,
                 zIndex: 49,
                 background: "#fff",
-                borderBottom: "1px solid #e8d5c8",
+                borderBottom: "1px solid #d8e2ea",
                 overflowX: "auto",
                 scrollBehavior: "smooth",
                 scrollbarWidth: "none",
@@ -1307,8 +1307,8 @@ export default function CustomerMenu() {
                     padding: "10px 16px",
                     background: "none",
                     border: "none",
-                    borderBottom: activeCat === cat.id ? "2px solid #8b3a2a" : "2px solid transparent",
-                    color: activeCat === cat.id ? "#8b3a2a" : "#b8907a",
+                    borderBottom: activeCat === cat.id ? "2px solid #16314F" : "2px solid transparent",
+                    color: activeCat === cat.id ? "#16314F" : "#8da5b4",
                     cursor: "pointer",
                     fontFamily: "DM Sans",
                     fontSize: 13,
@@ -1334,7 +1334,7 @@ export default function CustomerMenu() {
                   <div
                     style={{
                       padding: "20px 16px 10px",
-                      borderBottom: "1px solid #e8d5c8",
+                      borderBottom: "1px solid #d8e2ea",
                       background: "transparent",
                       display: "flex",
                       alignItems: "center",
@@ -1346,14 +1346,14 @@ export default function CustomerMenu() {
                         fontFamily: "DM Sans",
                         fontSize: 15,
                         fontWeight: 800,
-                        color: "#3d1c12",
+                        color: "#0d1f2d",
                         textTransform: "uppercase",
                         letterSpacing: "0.04em",
                       }}
                     >
                       {cat.icon} {localized(cat, "name", lang)}
                     </span>
-                    <span style={{ fontSize: 11, color: "#b8907a", fontFamily: "DM Mono" }}>
+                    <span style={{ fontSize: 11, color: "#8da5b4", fontFamily: "DM Mono" }}>
                       ({catItems.length})
                     </span>
                   </div>
@@ -1369,20 +1369,20 @@ export default function CustomerMenu() {
       {orderingOn && cartCount > 0 && (
         <div style={{ position:"fixed", bottom:24, left:"50%", transform:"translateX(-50%)", width:"calc(100% - 32px)", maxWidth:448, zIndex:100 }}>
           <button type="button" onClick={()=>setShowCart(true)}
-            style={{ width:"100%", background:"#8b3a2a", color:"#fff", border:"none", borderRadius:28, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontFamily:"DM Sans", boxShadow:"0 8px 32px rgba(139,58,42,0.28)" }}>
+            style={{ width:"100%", background:"#16314F", color:"#fff", border:"none", borderRadius:28, padding:"16px 24px", display:"flex", alignItems:"center", justifyContent:"space-between", cursor:"pointer", fontFamily:"DM Sans", boxShadow:"0 8px 32px rgba(22,49,79,0.28)" }}>
             <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-              <div style={{ background:"#d4956a", borderRadius:"50%", width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff" }}>{cartCount}</div>
+              <div style={{ background:"#4a7fa5", borderRadius:"50%", width:26, height:26, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700, color:"#fff" }}>{cartCount}</div>
               <span style={{ fontSize:14, fontWeight:600 }}>{t.viewOrder}</span>
             </div>
-            <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#d4956a" }}>{fmt(cartTotal)}</span>
+            <span style={{ fontFamily:"Cormorant Garamond", fontSize:20, fontWeight:700, color:"#4a7fa5" }}>{fmt(cartTotal)}</span>
           </button>
         </div>
       )}
 
       {!orderingOn && view === "menu" && (
         <div style={{ position:"fixed", bottom:0, left:0, right:0, zIndex:90, display:"flex", justifyContent:"center", pointerEvents:"none" }}>
-          <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(245,237,230,0.98) 60%, transparent)" }}>
-            <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#b8907a", letterSpacing:"0.02em", lineHeight:1.5 }}>
+          <div style={{ maxWidth:480, width:"100%", padding:"12px 20px 20px", background:"linear-gradient(to top, rgba(245,245,240,0.98) 60%, transparent)" }}>
+            <div style={{ textAlign:"center", fontSize:12, fontWeight:500, color:"#8da5b4", letterSpacing:"0.02em", lineHeight:1.5 }}>
               {t.scanPrompt}
             </div>
           </div>
@@ -1415,14 +1415,14 @@ export default function CustomerMenu() {
       )}
       {showInfo && (
         <div style={{ position:"fixed", inset:0, zIndex:300 }}>
-          <div style={{ position:"absolute", inset:0, background:"rgba(61,28,18,0.4)" }} onClick={() => setShowInfo(false)} />
-          <div className="info-sidebar-panel" style={{ position:"absolute", top:0, left:0, width:"85%", maxWidth:340, height:"100%", background:"#fff", overflowY:"auto", display:"flex", flexDirection:"column", boxShadow:"4px 0 24px rgba(61,28,18,0.08)" }}>
+          <div style={{ position:"absolute", inset:0, background:"rgba(13,31,45,0.4)" }} onClick={() => setShowInfo(false)} />
+          <div className="info-sidebar-panel" style={{ position:"absolute", top:0, left:0, width:"85%", maxWidth:340, height:"100%", background:"#fff", overflowY:"auto", display:"flex", flexDirection:"column", boxShadow:"4px 0 24px rgba(13,31,45,0.08)" }}>
             <div style={{ display:"flex", justifyContent:"flex-end", padding:"16px 16px 0" }}>
               <button type="button" onClick={() => setShowInfo(false)}
-                style={{ background:"#f7efe8", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, color:"#7a4f3a", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
+                style={{ background:"#eef1f4", border:"none", borderRadius:"50%", width:32, height:32, cursor:"pointer", fontSize:16, color:"#4a6274", display:"flex", alignItems:"center", justifyContent:"center" }}>✕</button>
             </div>
 
-            <div style={{ padding:"8px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.contactLabel}</div>
+            <div style={{ padding:"8px 0 4px 20px", fontSize:12, color:"#8da5b4", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.contactLabel}</div>
             {[
               { icon:"📍", val: restaurant?.location, href: restaurant?.location ? `https://maps.google.com/?q=${encodeURIComponent(restaurant.location)}` : null },
               { icon:"📞", val: restaurant?.phone, href: restaurant?.phone ? `tel:${restaurant.phone}` : null },
@@ -1430,26 +1430,26 @@ export default function CustomerMenu() {
               { icon:"🌐", val: restaurant?.website, href: restaurant?.website },
             ].filter((r) => r.val).map((row, i) => (
               <a key={i} href={row.href || "#"} target="_blank" rel="noopener noreferrer"
-                style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", borderBottom:"1px solid #f5f0ea", textDecoration:"none" }}>
+                style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", borderBottom:"1px solid #e2eaf0", textDecoration:"none" }}>
                 <span style={{ fontSize:20, flexShrink:0 }}>{row.icon}</span>
-                <span style={{ flex:1, fontSize:14, color:"#3d1c12" }}>{row.val}</span>
-                <span style={{ color:"#b8907a", fontSize:16 }}>→</span>
+                <span style={{ flex:1, fontSize:14, color:"#0d1f2d" }}>{row.val}</span>
+                <span style={{ color:"#8da5b4", fontSize:16 }}>→</span>
               </a>
             ))}
 
             {restaurant?.instagram && (
               <>
-                <div style={{ padding:"16px 0 4px 20px", fontSize:12, color:"#b8907a", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.socialLabel}</div>
+                <div style={{ padding:"16px 0 4px 20px", fontSize:12, color:"#8da5b4", fontFamily:"DM Mono, monospace", letterSpacing:"0.08em" }}>{t.socialLabel}</div>
                 <a href={`https://instagram.com/${String(restaurant.instagram).replace("@", "")}`} target="_blank" rel="noopener noreferrer"
-                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", borderBottom:"1px solid #f5f0ea", textDecoration:"none" }}>
+                  style={{ display:"flex", alignItems:"center", gap:14, padding:"14px 20px", borderBottom:"1px solid #e2eaf0", textDecoration:"none" }}>
                   <span style={{ fontSize:20 }}>📸</span>
-                  <span style={{ flex:1, fontSize:14, color:"#3d1c12" }}>{t.instagramLabel}</span>
-                  <span style={{ color:"#b8907a", fontSize:16 }}>→</span>
+                  <span style={{ flex:1, fontSize:14, color:"#0d1f2d" }}>{t.instagramLabel}</span>
+                  <span style={{ color:"#8da5b4", fontSize:16 }}>→</span>
                 </a>
               </>
             )}
 
-            <div style={{ margin:"24px 20px 0", padding:"16px", background:"#f7efe8", borderRadius:12, fontSize:13, color:"#7a4f3a", fontFamily:"DM Mono, monospace", textAlign:"center" }}>
+            <div style={{ margin:"24px 20px 0", padding:"16px", background:"#eef1f4", borderRadius:12, fontSize:13, color:"#4a6274", fontFamily:"DM Mono, monospace", textAlign:"center" }}>
               {t.serviceChargeVal}
             </div>
           </div>
