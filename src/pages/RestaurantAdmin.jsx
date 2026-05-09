@@ -211,7 +211,9 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     if (!file) return;
     setImageUploading(true);
     const storageKey = `${Date.now()}-${sanitizeFileName(file.name)}`;
-    const { error } = await supabase.storage.from("menu_images").upload(storageKey, file);
+    const { error } = await supabase.storage.from("menu_images").upload(storageKey, file, {
+      cacheControl: "31536000",
+    });
     if (error) {
       showToast(error.message, "warn");
       setImageUploading(false);
@@ -1306,7 +1308,7 @@ export default function RestaurantAdmin() {
                         e.target.value = "";
                         if (!file || !restaurant?.id) return;
                         const fileName = `logo-${restaurant.id}-${Date.now()}`;
-                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { upsert: true });
+                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { upsert: true, cacheControl: "31536000" });
                         if (error) { showToast(error.message, "warn"); return; }
                         const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
                         const url = urlData?.publicUrl;
@@ -1348,7 +1350,7 @@ export default function RestaurantAdmin() {
                         if (!file || !restaurant?.id) return;
                         if (settingsForm.gallery.length >= 5) { showToast("Max 5 gallery photos", "warn"); return; }
                         const fileName = `gallery-${restaurant.id}-${Date.now()}`;
-                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file);
+                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { cacheControl: "31536000" });
                         if (error) { showToast(error.message, "warn"); return; }
                         const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
                         const url = urlData?.publicUrl;

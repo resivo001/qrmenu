@@ -383,7 +383,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t, lang }) {
         <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#eef1f4" }}>
           {item.img ? (
             <div style={{ position:"absolute", inset:0 }}>
-              <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" width="600" height="600" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+              <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" decoding="async" width="600" height="600" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
             </div>
           ) : (
             <div style={{ width:"100%", height:"100%", background:"#eef1f4" }} />
@@ -510,7 +510,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #eef1f4" }}>
               {item.img ? (
                 <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#eef1f4" }}>
-                  <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" width="52" height="52" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+                  <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" decoding="async" width="52" height="52" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
               ) : (
                 <div style={{ width:52, height:52, borderRadius:10, background:"#eef1f4", flexShrink:0 }} />
@@ -679,6 +679,7 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
             src={menuImageUrl(item.img)}
             alt={localized(item, "name", lang)}
             loading="lazy"
+            decoding="async"
             width="110"
             height="110"
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
@@ -942,7 +943,7 @@ export default function CustomerMenu() {
             pointerEvents: i === heroSlideIndex ? "auto" : "none",
           }}
         >
-          <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" width="600" height="600" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" decoding="async" width="600" height="600" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(13,31,45,0.6) 0%, transparent 55%)" }} />
           <div
             style={{
