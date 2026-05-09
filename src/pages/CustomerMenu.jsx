@@ -2,24 +2,13 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "../supabase";
 
 const DEFAULT_RESTAURANT_ID = "ac4e5a27-a9dd-46cf-b6c9-45469c1aaa7b";
-const STORAGE_OBJECT_PUBLIC_PATH = "/storage/v1/object/public/";
-const STORAGE_RENDER_IMAGE_PUBLIC_PATH = "/storage/v1/render/image/public/";
-const MENU_IMAGE_TRANSFORM = { width: "600", quality: "75" };
 
 function menuImageUrl(url) {
-  if (!url) return "";
-  if (!url.includes(STORAGE_OBJECT_PUBLIC_PATH) && !url.includes(STORAGE_RENDER_IMAGE_PUBLIC_PATH)) return url;
-
-  const transformed = url.replace(STORAGE_OBJECT_PUBLIC_PATH, STORAGE_RENDER_IMAGE_PUBLIC_PATH);
-  try {
-    const parsed = new URL(transformed);
-    parsed.searchParams.set("width", MENU_IMAGE_TRANSFORM.width);
-    parsed.searchParams.set("quality", MENU_IMAGE_TRANSFORM.quality);
-    return parsed.toString();
-  } catch {
-    const separator = transformed.includes("?") ? "&" : "?";
-    return `${transformed}${separator}width=${MENU_IMAGE_TRANSFORM.width}&quality=${MENU_IMAGE_TRANSFORM.quality}`;
-  }
+  if (!url) return null;
+  const base = url.includes("/render/image/")
+    ? url.replace("/render/image/", "/object/")
+    : url;
+  return base.includes("?") ? base : `${base}?width=600&quality=75`;
 }
 
 const GS = () => (
