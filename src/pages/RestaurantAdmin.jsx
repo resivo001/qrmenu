@@ -5,6 +5,14 @@ import { supabase } from "../supabase";
 // ✅ Dynamic base URL — works on any domain, no hardcoding
 const MENU_QR_BASE = `${window.location.origin}/menu`;
 
+const sanitizeFileName = (name) => {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .toLowerCase();
+};
+
 const GS = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
@@ -193,7 +201,7 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     e.target.value = "";
     if (!file) return;
     setImageUploading(true);
-    const fileName = `${Date.now()}-${file.name}`;
+    const fileName = `${Date.now()}-${sanitizeFileName(file.name)}`;
     const { error } = await supabase.storage.from("menu_images").upload(fileName, file);
     if (error) {
       showToast(error.message, "warn");

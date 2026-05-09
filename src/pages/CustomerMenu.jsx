@@ -2,6 +2,25 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "../supabase";
 
 const DEFAULT_RESTAURANT_ID = "ac4e5a27-a9dd-46cf-b6c9-45469c1aaa7b";
+const STORAGE_OBJECT_PUBLIC_PATH = "/storage/v1/object/public/";
+const STORAGE_RENDER_IMAGE_PUBLIC_PATH = "/storage/v1/render/image/public/";
+const MENU_IMAGE_TRANSFORM = { width: "600", quality: "75" };
+
+function menuImageUrl(url) {
+  if (!url) return "";
+  if (!url.includes(STORAGE_OBJECT_PUBLIC_PATH) && !url.includes(STORAGE_RENDER_IMAGE_PUBLIC_PATH)) return url;
+
+  const transformed = url.replace(STORAGE_OBJECT_PUBLIC_PATH, STORAGE_RENDER_IMAGE_PUBLIC_PATH);
+  try {
+    const parsed = new URL(transformed);
+    parsed.searchParams.set("width", MENU_IMAGE_TRANSFORM.width);
+    parsed.searchParams.set("quality", MENU_IMAGE_TRANSFORM.quality);
+    return parsed.toString();
+  } catch {
+    const separator = transformed.includes("?") ? "&" : "?";
+    return `${transformed}${separator}width=${MENU_IMAGE_TRANSFORM.width}&quality=${MENU_IMAGE_TRANSFORM.quality}`;
+  }
+}
 
 const GS = () => (
   <style>{`
@@ -343,7 +362,7 @@ function mapItemFromDb(row) {
     desc_az: row.desc_az ?? "",
     desc_ru: row.desc_ru ?? "",
     price: Number(row.price ?? 0),
-    img: row.image_url ?? row.img ?? "",
+    img: menuImageUrl(row.image_url ?? row.img ?? ""),
     badge: row.badge ?? null,
   };
 }
@@ -375,7 +394,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t, lang }) {
         <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#eef1f4" }}>
           {item.img ? (
             <div style={{ position:"absolute", inset:0 }}>
-              <img src={item.img} alt={localized(item, "name", lang)} style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+              <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" width="600" height="600" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
             </div>
           ) : (
             <div style={{ width:"100%", height:"100%", background:"#eef1f4" }} />
@@ -502,7 +521,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #eef1f4" }}>
               {item.img ? (
                 <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#eef1f4" }}>
-                  <img src={item.img} alt={localized(item, "name", lang)} style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
+                  <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" width="52" height="52" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
               ) : (
                 <div style={{ width:52, height:52, borderRadius:10, background:"#eef1f4", flexShrink:0 }} />
@@ -668,8 +687,11 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
       <div style={{ width: 110, height: 110, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#eef1f4" }}>
         {item.img ? (
           <img
-            src={item.img}
+            src={menuImageUrl(item.img)}
             alt={localized(item, "name", lang)}
+            loading="lazy"
+            width="110"
+            height="110"
             style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
             onError={(e) => {
               e.target.parentElement.style.background = "#eef1f4";
@@ -931,7 +953,7 @@ export default function CustomerMenu() {
             pointerEvents: i === heroSlideIndex ? "auto" : "none",
           }}
         >
-          <img src={item.img} alt={localized(item, "name", lang)} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" width="600" height="600" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(13,31,45,0.6) 0%, transparent 55%)" }} />
           <div
             style={{
