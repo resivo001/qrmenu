@@ -13,6 +13,15 @@ const sanitizeFileName = (name) => {
     .toLowerCase();
 };
 
+const getMenuImagePublicUrl = (value) => {
+  if (!value) return "";
+  if (/^https?:\/\//i.test(value)) return value;
+
+  const storageKey = value.replace(/^\/+/, "").replace(/^menu_images\//, "");
+  const { data } = supabase.storage.from("menu_images").getPublicUrl(storageKey);
+  return data?.publicUrl || "";
+};
+
 const GS = () => (
   <style>{`
     @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&display=swap');
@@ -124,7 +133,7 @@ function mapItemFromDb(row) {
     name: row.name ?? "",
     desc: row.description ?? row.desc ?? "",
     price: Number(row.price ?? 0),
-    img: row.image_url ?? row.img ?? "",
+    img: getMenuImagePublicUrl(row.image_url ?? row.img ?? ""),
     available: !!row.available,
   };
 }
@@ -201,16 +210,15 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     e.target.value = "";
     if (!file) return;
     setImageUploading(true);
-    const fileName = `${Date.now()}-${sanitizeFileName(file.name)}`;
-    const { error } = await supabase.storage.from("menu_images").upload(fileName, file);
+    const storageKey = `${Date.now()}-${sanitizeFileName(file.name)}`;
+    const { error } = await supabase.storage.from("menu_images").upload(storageKey, file);
     if (error) {
       showToast(error.message, "warn");
       setImageUploading(false);
       return;
     }
-    const { data } = supabase.storage.from("menu_images").getPublicUrl(fileName);
-    const url = data?.publicUrl;
-    if (url) set("img", url);
+    const publicUrl = getMenuImagePublicUrl(storageKey);
+    if (publicUrl) set("img", publicUrl);
     setImageUploading(false);
   };
   const handleSave = async () => {
@@ -784,13 +792,14 @@ export default function RestaurantAdmin() {
 
   const saveItem = async (form) => {
     if (!restaurant?.id) return undefined;
+    const imageUrl = getMenuImagePublicUrl(form.img);
     const row = {
       restaurant_id: restaurant.id,
       category_id: form.cat,
       name: form.name.trim(),
       description: form.desc || "",
       price: Number(form.price),
-      image_url: form.img || "",
+      image_url: imageUrl,
       available: !!form.available,
     };
     if (form.id) {
