@@ -26,3 +26,8 @@ dist-ssr
 # Local scripts and reports (not part of the app)
 beast-upload-report.json
 upload-beast-photos.cjs
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+.env.*.local
