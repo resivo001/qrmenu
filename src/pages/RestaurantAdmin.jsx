@@ -13,6 +13,46 @@ const sanitizeFileName = (name) => {
     .toLowerCase();
 };
 
+// Resize to max 800px on the long edge, re-encode as JPEG q=0.7.
+// Returns a Blob on success, or the original file as a fallback (e.g. SVG/HEIC the browser can't decode).
+const compressImage = (file) => {
+  return new Promise((resolve) => {
+    if (!file || !file.type?.startsWith("image/")) { resolve(file); return; }
+    const url = URL.createObjectURL(file);
+    const img = document.createElement("img");
+    img.onload = () => {
+      const maxSize = 800;
+      let width = img.width;
+      let height = img.height;
+      if (width > height && width > maxSize) {
+        height = (height * maxSize) / width;
+        width = maxSize;
+      } else if (height > maxSize) {
+        width = (width * maxSize) / height;
+        height = maxSize;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(width);
+      canvas.height = Math.round(height);
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      canvas.toBlob(
+        (blob) => {
+          URL.revokeObjectURL(url);
+          resolve(blob || file);
+        },
+        "image/jpeg",
+        0.7
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+};
+
 const getMenuImagePublicUrl = (value) => {
   if (!value) return "";
   if (/^https?:\/\//i.test(value)) return value;
@@ -258,9 +298,11 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     if (!file) return;
     try {
       setImageUploading(true);
+      const compressed = await compressImage(file);
       const storageKey = `${Date.now()}-${sanitizeFileName(file.name)}`;
-      const { error } = await supabase.storage.from("menu_images").upload(storageKey, file, {
+      const { error } = await supabase.storage.from("menu_images").upload(storageKey, compressed, {
         cacheControl: "31536000",
+        contentType: compressed?.type || file.type,
       });
       if (error) {
         showToast(error.message, "warn");
@@ -1423,8 +1465,9 @@ export default function RestaurantAdmin() {
                         e.target.value = "";
                         if (!file || !restaurant?.id) return;
                         try {
+                          const compressed = await compressImage(file);
                           const fileName = `logo-${restaurant.id}-${Date.now()}`;
-                          const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { upsert: true, cacheControl: "31536000" });
+                          const { error } = await supabase.storage.from("menu_images").upload(fileName, compressed, { upsert: true, cacheControl: "31536000", contentType: compressed?.type || file.type });
                           if (error) { showToast(error.message, "warn"); return; }
                           const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
                           const url = urlData?.publicUrl;
@@ -1470,8 +1513,9 @@ export default function RestaurantAdmin() {
                         if (!file || !restaurant?.id) return;
                         if (settingsForm.gallery.length >= 5) { showToast("Max 5 gallery photos", "warn"); return; }
                         try {
+                          const compressed = await compressImage(file);
                           const fileName = `gallery-${restaurant.id}-${Date.now()}`;
-                          const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { cacheControl: "31536000" });
+                          const { error } = await supabase.storage.from("menu_images").upload(fileName, compressed, { cacheControl: "31536000", contentType: compressed?.type || file.type });
                           if (error) { showToast(error.message, "warn"); return; }
                           const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
                           const url = urlData?.publicUrl;

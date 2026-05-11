@@ -984,7 +984,7 @@ export default function CustomerMenu() {
       ))}
       {restaurant?.logo_url && (
         <div style={{ position: "absolute", top: 16, left: 16, width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff" }}>
-          <img src={restaurant.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+          <img src={restaurant.logo_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
         </div>
       )}
       <div style={{ position: "absolute", top: 16, right: 16, display: "flex", gap: 8, alignItems: "center" }}>
@@ -1094,7 +1094,7 @@ export default function CustomerMenu() {
                 <div style={{ display: "flex", alignItems: "center", minHeight: 72 }}>
                   {restaurant?.logo_url ? (
                     <div style={{ width: 72, height: 72, borderRadius: 14, overflow: "hidden", background: "#fff", border: "1px solid #d8e2ea" }}>
-                      <img src={restaurant.logo_url} alt="" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
+                      <img src={restaurant.logo_url} alt="" loading="lazy" decoding="async" style={{ width: "100%", height: "100%", objectFit: "contain" }} />
                     </div>
                   ) : (
                     <div style={{ width: 1, height: 1 }} aria-hidden />
