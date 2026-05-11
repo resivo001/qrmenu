@@ -256,19 +256,24 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    setImageUploading(true);
-    const storageKey = `${Date.now()}-${sanitizeFileName(file.name)}`;
-    const { error } = await supabase.storage.from("menu_images").upload(storageKey, file, {
-      cacheControl: "31536000",
-    });
-    if (error) {
-      showToast(error.message, "warn");
+    try {
+      setImageUploading(true);
+      const storageKey = `${Date.now()}-${sanitizeFileName(file.name)}`;
+      const { error } = await supabase.storage.from("menu_images").upload(storageKey, file, {
+        cacheControl: "31536000",
+      });
+      if (error) {
+        showToast(error.message, "warn");
+        return;
+      }
+      const publicUrl = getMenuImagePublicUrl(storageKey);
+      if (publicUrl) set("img", publicUrl);
+    } catch (err) {
+      console.error("Upload error:", err);
+      showToast(err?.message || "Image upload failed", "warn");
+    } finally {
       setImageUploading(false);
-      return;
     }
-    const publicUrl = getMenuImagePublicUrl(storageKey);
-    if (publicUrl) set("img", publicUrl);
-    setImageUploading(false);
   };
   const handleSave = async () => {
     if (!valid || imageUploading || itemSaving) return;
@@ -1417,12 +1422,17 @@ export default function RestaurantAdmin() {
                         const file = e.target.files?.[0];
                         e.target.value = "";
                         if (!file || !restaurant?.id) return;
-                        const fileName = `logo-${restaurant.id}-${Date.now()}`;
-                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { upsert: true, cacheControl: "31536000" });
-                        if (error) { showToast(error.message, "warn"); return; }
-                        const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
-                        const url = urlData?.publicUrl;
-                        if (url) setSettingsForm((p) => ({ ...p, logo_url: url }));
+                        try {
+                          const fileName = `logo-${restaurant.id}-${Date.now()}`;
+                          const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { upsert: true, cacheControl: "31536000" });
+                          if (error) { showToast(error.message, "warn"); return; }
+                          const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
+                          const url = urlData?.publicUrl;
+                          if (url) setSettingsForm((p) => ({ ...p, logo_url: url }));
+                        } catch (err) {
+                          console.error("Logo upload error:", err);
+                          showToast(err?.message || "Logo upload failed", "warn");
+                        }
                       }}
                     />
                     <button type="button" className="btn-ghost" style={S.ghostBtn}
@@ -1459,12 +1469,17 @@ export default function RestaurantAdmin() {
                         e.target.value = "";
                         if (!file || !restaurant?.id) return;
                         if (settingsForm.gallery.length >= 5) { showToast("Max 5 gallery photos", "warn"); return; }
-                        const fileName = `gallery-${restaurant.id}-${Date.now()}`;
-                        const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { cacheControl: "31536000" });
-                        if (error) { showToast(error.message, "warn"); return; }
-                        const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
-                        const url = urlData?.publicUrl;
-                        if (url) setSettingsForm((p) => ({ ...p, gallery: [...p.gallery, url] }));
+                        try {
+                          const fileName = `gallery-${restaurant.id}-${Date.now()}`;
+                          const { error } = await supabase.storage.from("menu_images").upload(fileName, file, { cacheControl: "31536000" });
+                          if (error) { showToast(error.message, "warn"); return; }
+                          const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
+                          const url = urlData?.publicUrl;
+                          if (url) setSettingsForm((p) => ({ ...p, gallery: [...p.gallery, url] }));
+                        } catch (err) {
+                          console.error("Gallery upload error:", err);
+                          showToast(err?.message || "Gallery upload failed", "warn");
+                        }
                       }}
                     />
                     <button type="button" className="btn-ghost" style={S.ghostBtn}
