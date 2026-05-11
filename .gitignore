@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local scripts and reports (not part of the app)
+beast-upload-report.json
+upload-beast-photos.cjs
