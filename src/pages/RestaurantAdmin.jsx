@@ -13,15 +13,16 @@ const sanitizeFileName = (name) => {
     .toLowerCase();
 };
 
-// Resize to max 800px on the long edge, re-encode as JPEG q=0.7.
-// Returns a Blob on success, or the original file as a fallback (e.g. SVG/HEIC the browser can't decode).
+// Resize to max 1200px on the long edge, re-encode as WebP q=0.82.
+// Skips files already under 300 KB and falls back to the original file when the browser can't decode it (e.g. SVG/HEIC).
 const compressImage = (file) => {
   return new Promise((resolve) => {
     if (!file || !file.type?.startsWith("image/")) { resolve(file); return; }
+    if (file.size < 300 * 1024) { resolve(file); return; }
     const url = URL.createObjectURL(file);
     const img = document.createElement("img");
     img.onload = () => {
-      const maxSize = 800;
+      const maxSize = 1200;
       let width = img.width;
       let height = img.height;
       if (width > height && width > maxSize) {
@@ -41,8 +42,8 @@ const compressImage = (file) => {
           URL.revokeObjectURL(url);
           resolve(blob || file);
         },
-        "image/jpeg",
-        0.7
+        "image/webp",
+        0.82
       );
     };
     img.onerror = () => {
@@ -51,6 +52,15 @@ const compressImage = (file) => {
     };
     img.src = url;
   });
+};
+
+const extFromMime = (mime) => {
+  if (mime === "image/webp") return ".webp";
+  if (mime === "image/jpeg") return ".jpg";
+  if (mime === "image/png") return ".png";
+  if (mime === "image/gif") return ".gif";
+  if (mime === "image/svg+xml") return ".svg";
+  return "";
 };
 
 const getMenuImagePublicUrl = (value) => {
@@ -299,7 +309,10 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
     try {
       setImageUploading(true);
       const compressed = await compressImage(file);
-      const storageKey = `${Date.now()}-${sanitizeFileName(file.name)}`;
+      const safeName = sanitizeFileName(file.name);
+      const baseName = safeName.replace(/\.[^.]+$/, "");
+      const ext = extFromMime(compressed?.type) || extFromMime(file.type) || (safeName.match(/\.[^.]+$/)?.[0] ?? "");
+      const storageKey = `${Date.now()}-${baseName}${ext}`;
       const { error } = await supabase.storage.from("menu_images").upload(storageKey, compressed, {
         cacheControl: "31536000",
         contentType: compressed?.type || file.type,
@@ -1466,7 +1479,8 @@ export default function RestaurantAdmin() {
                         if (!file || !restaurant?.id) return;
                         try {
                           const compressed = await compressImage(file);
-                          const fileName = `logo-${restaurant.id}-${Date.now()}`;
+                          const ext = extFromMime(compressed?.type) || extFromMime(file.type) || "";
+                          const fileName = `logo-${restaurant.id}-${Date.now()}${ext}`;
                           const { error } = await supabase.storage.from("menu_images").upload(fileName, compressed, { upsert: true, cacheControl: "31536000", contentType: compressed?.type || file.type });
                           if (error) { showToast(error.message, "warn"); return; }
                           const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
@@ -1514,7 +1528,8 @@ export default function RestaurantAdmin() {
                         if (settingsForm.gallery.length >= 5) { showToast("Max 5 gallery photos", "warn"); return; }
                         try {
                           const compressed = await compressImage(file);
-                          const fileName = `gallery-${restaurant.id}-${Date.now()}`;
+                          const ext = extFromMime(compressed?.type) || extFromMime(file.type) || "";
+                          const fileName = `gallery-${restaurant.id}-${Date.now()}${ext}`;
                           const { error } = await supabase.storage.from("menu_images").upload(fileName, compressed, { cacheControl: "31536000", contentType: compressed?.type || file.type });
                           if (error) { showToast(error.message, "warn"); return; }
                           const { data: urlData } = supabase.storage.from("menu_images").getPublicUrl(fileName);
