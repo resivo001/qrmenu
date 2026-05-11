@@ -1039,7 +1039,14 @@ export default function RestaurantAdmin() {
   };
 
   const catName = (id) => cats.find((c) => c.id === id)?.name || "—";
-  const filteredItems = items.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()) && (filterCat === "all" || i.cat === filterCat));
+  const filteredItems = items.filter((i) => {
+    const q = search.toLowerCase();
+    const matchesSearch =
+      (i.name?.toLowerCase().includes(q)) ||
+      (i.name_az?.toLowerCase().includes(q)) ||
+      (i.name_ru?.toLowerCase().includes(q));
+    return matchesSearch && (filterCat === "all" || i.cat === filterCat);
+  });
   const newOrders = orders.filter((o) => o.status === "new").length;
   const todayRevenue = orders.reduce((s, o) => s + o.total, 0);
   const displayTab = !features.ordering && tab === "orders" ? "menu" : tab;
