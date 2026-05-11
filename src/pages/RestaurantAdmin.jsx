@@ -131,7 +131,11 @@ function mapItemFromDb(row) {
     id: String(row.id),
     cat: String(row.category_id ?? row.cat ?? ""),
     name: row.name ?? "",
+    name_az: row.name_az ?? "",
+    name_ru: row.name_ru ?? "",
     desc: row.description ?? row.desc ?? "",
+    desc_az: row.desc_az ?? "",
+    desc_ru: row.desc_ru ?? "",
     price: Number(row.price ?? 0),
     img: getMenuImagePublicUrl(row.image_url ?? row.img ?? ""),
     available: !!row.available,
@@ -198,12 +202,55 @@ function Field({ label, children, style }) {
   );
 }
 
+const ITEM_LANG_TABS = [
+  { code: "EN", label: "EN" },
+  { code: "AZ", label: "AZ" },
+  { code: "RU", label: "RU" },
+];
+
+function itemModalInitialForm(item, cats) {
+  if (!item) {
+    return {
+      name: "",
+      name_az: "",
+      name_ru: "",
+      desc: "",
+      desc_az: "",
+      desc_ru: "",
+      price: "",
+      cat: cats[0]?.id ?? "",
+      img: "",
+      available: true,
+    };
+  }
+  return {
+    id: item.id,
+    name: item.name ?? "",
+    name_az: item.name_az ?? "",
+    name_ru: item.name_ru ?? "",
+    desc: item.desc ?? "",
+    desc_az: item.desc_az ?? "",
+    desc_ru: item.desc_ru ?? "",
+    price: String(item.price ?? ""),
+    cat: item.cat,
+    img: item.img ?? "",
+    available: !!item.available,
+  };
+}
+
 function ItemModal({ item, cats, onSave, onClose, showToast }) {
-  const [form, setForm] = useState(item || { name:"", desc:"", price:"", cat:cats[0]?.id, img:"", available:true });
+  const [form, setForm] = useState(() => itemModalInitialForm(item, cats));
+  const [langTab, setLangTab] = useState("EN");
   const [imageUploading, setImageUploading] = useState(false);
   const [itemSaving, setItemSaving] = useState(false);
   const fileInputRef = useRef(null);
-  const set = (k,v) => setForm(p=>({...p,[k]:v}));
+  const set = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  useEffect(() => {
+    setForm(itemModalInitialForm(item, cats));
+    setLangTab("EN");
+  }, [item, cats]);
+  const nameKey = langTab === "EN" ? "name" : langTab === "AZ" ? "name_az" : "name_ru";
+  const descKey = langTab === "EN" ? "desc" : langTab === "AZ" ? "desc_az" : "desc_ru";
   const valid = form.name.trim() && form.price;
   const onImageFile = async (e) => {
     const file = e.target.files?.[0];
@@ -247,8 +294,41 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
         </div>
         <div style={{ flex:1, minHeight:0, overflowY:"auto", WebkitOverflowScrolling:"touch" }}>
           <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, paddingBottom:8 }}>
+            <div style={{ gridColumn:"1/-1" }}>
+              <label style={{ fontSize:10, fontFamily:"DM Mono", color:"#a89880", letterSpacing:"0.1em", display:"block", marginBottom:6 }}>LANGUAGE</label>
+              <div style={{ display:"flex", gap:4, marginBottom:14, background:"#faf7f2", borderRadius:8, padding:4, border:"1px solid #ede7da" }}>
+                {ITEM_LANG_TABS.map(({ code, label }) => (
+                  <button
+                    key={code}
+                    type="button"
+                    onClick={() => setLangTab(code)}
+                    style={{
+                      flex: 1,
+                      padding: "8px 10px",
+                      borderRadius: 6,
+                      border: "none",
+                      cursor: "pointer",
+                      fontFamily: "DM Mono, monospace",
+                      fontSize: 11,
+                      fontWeight: 600,
+                      letterSpacing: "0.06em",
+                      transition: "background 0.15s, color 0.15s",
+                      background: langTab === code ? "#1a1714" : "transparent",
+                      color: langTab === code ? "#f5f0e8" : "#8a7d6b",
+                    }}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <Field label="Item Name" style={{ gridColumn:"1/-1" }}>
-              <input style={S.inp} value={form.name} onChange={e=>set("name",e.target.value)} placeholder="e.g. Truffle Risotto" />
+              <input
+                style={S.inp}
+                value={form[nameKey] ?? ""}
+                onChange={(e) => set(nameKey, e.target.value)}
+                placeholder={langTab === "EN" ? "e.g. Truffle Risotto" : langTab === "AZ" ? "Azərbaycan dilində ad" : "Название по-русски"}
+              />
             </Field>
             <Field label="Price (₼)">
               <input style={S.inp} type="number" value={form.price} onChange={e=>set("price",e.target.value)} placeholder="0.00" />
@@ -270,7 +350,12 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
               </button>
             </Field>
             <Field label="Description" style={{ gridColumn:"1/-1" }}>
-              <textarea style={{ ...S.inp, minHeight:68, resize:"vertical" }} value={form.desc} onChange={e=>set("desc",e.target.value)} placeholder="Describe the dish..." />
+              <textarea
+                style={{ ...S.inp, minHeight: 68, resize: "vertical" }}
+                value={form[descKey] ?? ""}
+                onChange={(e) => set(descKey, e.target.value)}
+                placeholder={langTab === "EN" ? "Describe the dish…" : langTab === "AZ" ? "Təsvir (AZ)…" : "Описание (RU)…"}
+              />
             </Field>
           </div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", marginBottom:8 }}>
@@ -799,7 +884,11 @@ export default function RestaurantAdmin() {
       restaurant_id: restaurant.id,
       category_id: form.cat,
       name: form.name.trim(),
+      name_az: (form.name_az ?? "").trim(),
+      name_ru: (form.name_ru ?? "").trim(),
       description: form.desc || "",
+      desc_az: form.desc_az || "",
+      desc_ru: form.desc_ru || "",
       price: Number(form.price),
       image_url: imageUrl,
       available: !!form.available,
@@ -807,7 +896,21 @@ export default function RestaurantAdmin() {
     if (form.id) {
       const { error } = await supabase.from("menu_items").update(row).eq("id", form.id).eq("restaurant_id", restaurant.id);
       if (error) { showToast(error.message, "warn"); return false; }
-      setItems((p) => p.map((i) => i.id === String(form.id) ? { ...i, cat: String(form.cat), name: row.name, desc: row.description, price: row.price, img: row.image_url, available: row.available } : i));
+      setItems((p) => p.map((i) => (i.id === String(form.id)
+        ? {
+            ...i,
+            cat: String(form.cat),
+            name: row.name,
+            name_az: row.name_az,
+            name_ru: row.name_ru,
+            desc: row.description,
+            desc_az: row.desc_az,
+            desc_ru: row.desc_ru,
+            price: row.price,
+            img: row.image_url,
+            available: row.available,
+          }
+        : i)));
       showToast("Item updated ✓");
     } else {
       const { data, error } = await supabase.from("menu_items").insert(row).select().single();

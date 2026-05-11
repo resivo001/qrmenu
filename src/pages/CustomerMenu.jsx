@@ -368,10 +368,25 @@ function readUrlContext() {
   return { restaurantId, tableNum };
 }
 
+function trimmed(s) {
+  if (s == null) return "";
+  const t = String(s).trim();
+  return t;
+}
+
+/** Menu items & categories: EN uses base `field`; AZ/RU use `field_az` / `field_ru` with fallback to base when empty. */
 function localized(obj, field, lang) {
-  if (lang === "AZ") return obj[`${field}_az`] || obj[field] || "";
-  if (lang === "RU") return obj[`${field}_ru`] || obj[field] || "";
-  return obj[field] || "";
+  const base = trimmed(obj[field]);
+  if (lang === "EN") return base;
+  if (lang === "AZ") {
+    const v = trimmed(obj[`${field}_az`]);
+    return v || base;
+  }
+  if (lang === "RU") {
+    const v = trimmed(obj[`${field}_ru`]);
+    return v || base;
+  }
+  return base;
 }
 
 function ItemSheet({ item, onClose, onAdd, orderingEnabled, t, lang }) {
@@ -759,7 +774,11 @@ export default function CustomerMenu() {
       const [rRes, cRes, iRes] = await Promise.all([
         supabase.from("restaurants").select("*").eq("id", restaurantId).maybeSingle(),
         supabase.from("categories").select("*").eq("restaurant_id", restaurantId).order("sort_order", { ascending: true }),
-        supabase.from("menu_items").select("*").eq("restaurant_id", restaurantId).eq("available", true),
+        supabase
+          .from("menu_items")
+          .select("id, restaurant_id, category_id, name, name_az, name_ru, description, desc_az, desc_ru, price, image_url, available, badge")
+          .eq("restaurant_id", restaurantId)
+          .eq("available", true),
       ]);
       if (cancelled) return;
       if (rRes.error) { setLoadError(rRes.error.message); setLoading(false); return; }
@@ -863,7 +882,7 @@ export default function CustomerMenu() {
         restaurant_id: restaurantId,
         table_number: tableNum,
         status: "new",
-        items: cart.map((i) => ({ name: i.name, qty: i.qty })),
+        items: cart.map((i) => ({ name: localized(i, "name", lang), qty: i.qty })),
         total: cartTotal,
       })
       .select("id")
