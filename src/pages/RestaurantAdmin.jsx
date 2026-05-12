@@ -473,13 +473,19 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
                     ) : null}
                     <input
                       placeholder="Price"
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={addon.price}
+                      type="text"
+                      inputMode="decimal"
+                      value={addon.price === 0 ? '' : addon.price}
                       onChange={e => {
                         const updated = [...form.addons];
-                        updated[i] = { ...updated[i], price: parseFloat(e.target.value) || 0 };
+                        const raw = e.target.value.replace(',', '.');
+                        updated[i] = { ...updated[i], price: raw };
+                        setForm(prev => ({ ...prev, addons: updated }));
+                      }}
+                      onBlur={e => {
+                        const updated = [...form.addons];
+                        const parsed = parseFloat(e.target.value.replace(',', '.'));
+                        updated[i] = { ...updated[i], price: isNaN(parsed) ? 0 : parsed };
                         setForm(prev => ({ ...prev, addons: updated }));
                       }}
                       style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
