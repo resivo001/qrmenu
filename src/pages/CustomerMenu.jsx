@@ -353,6 +353,7 @@ function mapItemFromDb(row) {
     price: Number(row.price ?? 0),
     img: menuImageUrl(row.image_url ?? row.img ?? ""),
     badge: row.badge ?? null,
+    addons: Array.isArray(row.addons) ? row.addons : null,
   };
 }
 
@@ -661,6 +662,29 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
             {localized(item, "desc", lang)}
           </div>
         )}
+        {item.addons?.length > 0 && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+            {item.addons.map((addon, i) => (
+              <span key={i} style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+                padding: '4px 10px',
+                borderRadius: 20,
+                background: '#f0ebe0',
+                fontFamily: 'DM Mono',
+                fontSize: 11,
+                color: '#1a1714',
+                letterSpacing: '0.03em',
+                whiteSpace: 'nowrap'
+              }}>
+                {addon.name}
+                <span style={{ opacity: 0.5, margin: '0 2px' }}>·</span>
+                <span style={{ fontWeight: 500 }}>{addon.price}₼</span>
+              </span>
+            ))}
+          </div>
+        )}
         {orderingOn && (
           <button
             type="button"
@@ -776,7 +800,7 @@ export default function CustomerMenu() {
         supabase.from("categories").select("*").eq("restaurant_id", restaurantId).order("sort_order", { ascending: true }),
         supabase
           .from("menu_items")
-          .select("id, restaurant_id, category_id, name, name_az, name_ru, description, desc_az, desc_ru, price, image_url, available, badge")
+          .select("id, restaurant_id, category_id, name, name_az, name_ru, description, desc_az, desc_ru, price, image_url, available, badge, addons")
           .eq("restaurant_id", restaurantId)
           .eq("available", true),
       ]);

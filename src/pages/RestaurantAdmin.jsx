@@ -189,6 +189,7 @@ function mapItemFromDb(row) {
     price: Number(row.price ?? 0),
     img: getMenuImagePublicUrl(row.image_url ?? row.img ?? ""),
     available: !!row.available,
+    addons: Array.isArray(row.addons) ? row.addons : null,
   };
 }
 
@@ -271,6 +272,7 @@ function itemModalInitialForm(item, cats) {
       cat: cats[0]?.id ?? "",
       img: "",
       available: true,
+      addons: [],
     };
   }
   return {
@@ -285,6 +287,7 @@ function itemModalInitialForm(item, cats) {
     cat: item.cat,
     img: item.img ?? "",
     available: !!item.available,
+    addons: Array.isArray(item.addons) ? item.addons : (item.addons ?? []),
   };
 }
 
@@ -417,6 +420,54 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
                 placeholder={langTab === "EN" ? "Describe the dish…" : langTab === "AZ" ? "Təsvir (AZ)…" : "Описание (RU)…"}
               />
             </Field>
+            {/* Add-ons */}
+            <div style={{ marginTop: 16, gridColumn: "1/-1" }}>
+              <label style={{ fontFamily: 'DM Mono', fontSize: 12, color: '#8a7e6e', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                Add-ons (optional)
+              </label>
+              <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {(form.addons ?? []).map((addon, i) => (
+                  <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                    <input
+                      placeholder="Name (e.g. With Chicken)"
+                      value={addon.name}
+                      onChange={e => {
+                        const updated = [...form.addons];
+                        updated[i] = { ...updated[i], name: e.target.value };
+                        setForm(prev => ({ ...prev, addons: updated }));
+                      }}
+                      style={{ flex: 2, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
+                    />
+                    <input
+                      placeholder="Price"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={addon.price}
+                      onChange={e => {
+                        const updated = [...form.addons];
+                        updated[i] = { ...updated[i], price: parseFloat(e.target.value) || 0 };
+                        setForm(prev => ({ ...prev, addons: updated }));
+                      }}
+                      style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const updated = form.addons.filter((_, idx) => idx !== i);
+                        setForm(prev => ({ ...prev, addons: updated }));
+                      }}
+                      style={{ padding: '8px 12px', borderRadius: 8, border: 'none', background: '#f0ebe0', color: '#8a7e6e', cursor: 'pointer', fontFamily: 'DM Mono', fontSize: 13 }}
+                    >✕</button>
+                  </div>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={() => setForm(prev => ({ ...prev, addons: [...(prev.addons ?? []), { name: '', price: 0 }] }))}
+                style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, border: '1.5px dashed #d4c9b8', background: 'transparent', color: '#8a7e6e', cursor: 'pointer', fontFamily: 'DM Mono', fontSize: 12, letterSpacing: '0.05em' }}
+              >+ Add option</button>
+            </div>
           </div>
           <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 0", borderTop:"1px solid #f0ebe4", marginBottom:8 }}>
             <span style={{ fontSize:13, color:"#555", fontFamily:"Syne" }}>Available on menu</span>
@@ -952,6 +1003,7 @@ export default function RestaurantAdmin() {
       price: Number(form.price),
       image_url: imageUrl,
       available: !!form.available,
+      addons: form.addons?.length > 0 ? form.addons : null,
     };
     if (form.id) {
       const { error } = await supabase.from("menu_items").update(row).eq("id", form.id).eq("restaurant_id", restaurant.id);
@@ -969,6 +1021,7 @@ export default function RestaurantAdmin() {
             price: row.price,
             img: row.image_url,
             available: row.available,
+            addons: row.addons,
           }
         : i)));
       showToast("Item updated ✓");
