@@ -287,7 +287,14 @@ function itemModalInitialForm(item, cats) {
     cat: item.cat,
     img: item.img ?? "",
     available: !!item.available,
-    addons: Array.isArray(item.addons) ? item.addons : (item.addons ?? []),
+    addons: Array.isArray(item.addons)
+      ? item.addons.map((addon) => ({
+          name: addon.name ?? "",
+          name_az: addon.name_az ?? "",
+          name_ru: addon.name_ru ?? "",
+          price: addon.price ?? 0,
+        }))
+      : [],
   };
 }
 
@@ -428,16 +435,42 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
               <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {(form.addons ?? []).map((addon, i) => (
                   <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input
-                      placeholder="Name (e.g. With Chicken)"
-                      value={addon.name}
-                      onChange={e => {
-                        const updated = [...form.addons];
-                        updated[i] = { ...updated[i], name: e.target.value };
-                        setForm(prev => ({ ...prev, addons: updated }));
-                      }}
-                      style={{ flex: 2, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
-                    />
+                    {langTab === "EN" ? (
+                      <input
+                        placeholder="Name (e.g. With Chicken)"
+                        value={addon.name}
+                        onChange={(e) => {
+                          const updated = [...form.addons];
+                          updated[i] = { ...updated[i], name: e.target.value };
+                          setForm((prev) => ({ ...prev, addons: updated }));
+                        }}
+                        style={{ flex: 2, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
+                      />
+                    ) : null}
+                    {langTab === "AZ" ? (
+                      <input
+                        placeholder="Ad (məs. Toyuq ilə)"
+                        value={addon.name_az}
+                        onChange={(e) => {
+                          const updated = [...form.addons];
+                          updated[i] = { ...updated[i], name_az: e.target.value };
+                          setForm((prev) => ({ ...prev, addons: updated }));
+                        }}
+                        style={{ flex: 2, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
+                      />
+                    ) : null}
+                    {langTab === "RU" ? (
+                      <input
+                        placeholder="Название (напр. С курицей)"
+                        value={addon.name_ru}
+                        onChange={(e) => {
+                          const updated = [...form.addons];
+                          updated[i] = { ...updated[i], name_ru: e.target.value };
+                          setForm((prev) => ({ ...prev, addons: updated }));
+                        }}
+                        style={{ flex: 2, padding: '8px 12px', borderRadius: 8, border: '1.5px solid #e8e0d0', background: '#faf7f2', fontFamily: 'DM Mono', fontSize: 13, color: '#1a1714' }}
+                      />
+                    ) : null}
                     <input
                       placeholder="Price"
                       type="number"
@@ -464,7 +497,7 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
               </div>
               <button
                 type="button"
-                onClick={() => setForm(prev => ({ ...prev, addons: [...(prev.addons ?? []), { name: '', price: 0 }] }))}
+                onClick={() => setForm((prev) => ({ ...prev, addons: [...(prev.addons ?? []), { name: "", name_az: "", name_ru: "", price: 0 }] }))}
                 style={{ marginTop: 8, padding: '8px 16px', borderRadius: 8, border: '1.5px dashed #d4c9b8', background: 'transparent', color: '#8a7e6e', cursor: 'pointer', fontFamily: 'DM Mono', fontSize: 12, letterSpacing: '0.05em' }}
               >+ Add option</button>
             </div>

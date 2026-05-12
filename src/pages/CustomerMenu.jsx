@@ -340,6 +340,13 @@ function mapCategoryFromDb(row) {
   };
 }
 
+const getAddonName = (addon, lang) => {
+  const code = (lang ?? "").toString().toLowerCase();
+  if (code === "az") return addon.name_az || addon.name || "";
+  if (code === "ru") return addon.name_ru || addon.name || "";
+  return addon.name || addon.name_az || "";
+};
+
 function mapItemFromDb(row) {
   return {
     id: String(row.id),
@@ -678,7 +685,7 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
                 letterSpacing: '0.03em',
                 whiteSpace: 'nowrap'
               }}>
-                {addon.name}
+                {getAddonName(addon, lang)}
                 <span style={{ opacity: 0.5, margin: '0 2px' }}>·</span>
                 <span style={{ fontWeight: 500 }}>{addon.price}₼</span>
               </span>
