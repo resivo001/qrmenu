@@ -189,6 +189,7 @@ function mapItemFromDb(row) {
     price: Number(row.price ?? 0),
     img: getMenuImagePublicUrl(row.image_url ?? row.img ?? ""),
     available: !!row.available,
+    no_image: !!row.no_image,
     addons: Array.isArray(row.addons) ? row.addons : null,
   };
 }
@@ -272,6 +273,7 @@ function itemModalInitialForm(item, cats) {
       cat: cats[0]?.id ?? "",
       img: "",
       available: true,
+      no_image: false,
       addons: [],
     };
   }
@@ -287,6 +289,7 @@ function itemModalInitialForm(item, cats) {
     cat: item.cat,
     img: item.img ?? "",
     available: !!item.available,
+    no_image: !!item.no_image,
     addons: Array.isArray(item.addons)
       ? item.addons.map((addon) => ({
           name: addon.name ?? "",
@@ -409,15 +412,27 @@ function ItemModal({ item, cats, onSave, onClose, showToast }) {
               </select>
             </Field>
             <Field label="Image" style={{ gridColumn:"1/-1" }}>
-              <div style={{ width:"100%", height:180, borderRadius:10, marginBottom:10, background:"#faf7f2", overflow:"hidden" }}>
-                {form.img ? (
-                  <img src={form.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(ev)=>{ ev.target.style.display="none"; }} />
-                ) : null}
-              </div>
-              <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={(ev)=>void onImageFile(ev)} />
-              <button type="button" className="btn-ghost" style={S.ghostBtn} disabled={imageUploading} onClick={()=>fileInputRef.current?.click()}>
-                {imageUploading ? "Uploading..." : "Choose image"}
-              </button>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', marginBottom: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={form.no_image ?? false}
+                  onChange={e => setForm(prev => ({ ...prev, no_image: e.target.checked, img: e.target.checked ? null : prev.img }))}
+                />
+                <span style={{ fontFamily: 'DM Mono', fontSize: 12, color: '#8a7e6e', letterSpacing: '0.05em' }}>No photo for this item</span>
+              </label>
+              {!form.no_image && (
+                <>
+                  <div style={{ width:"100%", height:180, borderRadius:10, marginBottom:10, background:"#faf7f2", overflow:"hidden" }}>
+                    {form.img ? (
+                      <img src={form.img} alt="" style={{ width:"100%", height:"100%", objectFit:"cover", display:"block" }} onError={(ev)=>{ ev.target.style.display="none"; }} />
+                    ) : null}
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/*" style={{ display:"none" }} onChange={(ev)=>void onImageFile(ev)} />
+                  <button type="button" className="btn-ghost" style={S.ghostBtn} disabled={imageUploading} onClick={()=>fileInputRef.current?.click()}>
+                    {imageUploading ? "Uploading..." : "Choose image"}
+                  </button>
+                </>
+              )}
             </Field>
             <Field label="Description" style={{ gridColumn:"1/-1" }}>
               <textarea
@@ -1042,6 +1057,7 @@ export default function RestaurantAdmin() {
       price: Number(form.price),
       image_url: imageUrl,
       available: !!form.available,
+      no_image: form.no_image ?? false,
       addons: form.addons?.length > 0 ? form.addons : null,
     };
     if (form.id) {
@@ -1060,6 +1076,7 @@ export default function RestaurantAdmin() {
             price: row.price,
             img: row.image_url,
             available: row.available,
+            no_image: row.no_image,
             addons: row.addons,
           }
         : i)));

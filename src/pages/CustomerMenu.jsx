@@ -361,6 +361,7 @@ function mapItemFromDb(row) {
     img: menuImageUrl(row.image_url ?? row.img ?? ""),
     badge: row.badge ?? null,
     addons: Array.isArray(row.addons) ? row.addons : null,
+    no_image: !!row.no_image,
   };
 }
 
@@ -404,7 +405,7 @@ function ItemSheet({ item, onClose, onAdd, orderingEnabled, t, lang }) {
       <div style={{ position:"absolute", inset:0, background:"rgba(13,31,45,0.55)" }} onClick={onClose} className="fade-in" />
       <div className="slide-up" style={{ position:"relative", background:"#fff", borderRadius:"24px 24px 0 0", maxHeight:"88vh", overflowY:"auto", paddingBottom:32 }}>
         <div style={{ width:"100%", height:260, overflow:"hidden", position:"relative", background:"#eef1f4" }}>
-          {item.img ? (
+          {!item.no_image && item.img ? (
             <div style={{ position:"absolute", inset:0 }}>
               <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" decoding="async" width="600" height="600" style={{ width:"100%", height:"100%", objectFit:"cover" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
             </div>
@@ -531,7 +532,7 @@ function CartSheet({ cart, tableNumber, restaurantId, onClose, onQtyChange, paym
         <div style={{ overflowY:"auto", flex:1, padding:"0 20px" }}>
           {cart.map(item=>(
             <div key={item.id} style={{ display:"flex", alignItems:"center", gap:12, paddingBottom:16, marginBottom:16, borderBottom:"1px solid #eef1f4" }}>
-              {item.img ? (
+              {!item.no_image && item.img ? (
                 <div style={{ width:52, height:52, borderRadius:10, overflow:"hidden", flexShrink:0, background:"#eef1f4" }}>
                   <img src={menuImageUrl(item.img)} alt={localized(item, "name", lang)} loading="lazy" decoding="async" width="52" height="52" style={{ width:52, height:52, objectFit:"cover", display:"block" }} onError={(e) => { e.target.parentElement.style.display = "none"; }} />
                 </div>
@@ -719,8 +720,8 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
           </button>
         )}
       </div>
-      <div style={{ width: 110, height: 110, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#eef1f4" }}>
-        {item.img ? (
+      {!item.no_image && item.img && (
+        <div style={{ width: 110, height: 110, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: "#eef1f4" }}>
           <img
             src={menuImageUrl(item.img)}
             alt={localized(item, "name", lang)}
@@ -734,8 +735,8 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
               e.target.style.display = "none";
             }}
           />
-        ) : null}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -773,7 +774,7 @@ export default function CustomerMenu() {
   const [heroIndex, setHeroIndex] = useState(0);
   const heroTouchStartX = useRef(null);
 
-  const heroItems = useMemo(() => items.filter((i) => i.img).slice(0, 6), [items]);
+  const heroItems = useMemo(() => items.filter((i) => i.img && !i.no_image).slice(0, 6), [items]);
   const heroSlideIndex = heroItems.length === 0 ? 0 : heroIndex % heroItems.length;
 
   useEffect(() => {
@@ -807,7 +808,7 @@ export default function CustomerMenu() {
         supabase.from("categories").select("*").eq("restaurant_id", restaurantId).order("sort_order", { ascending: true }),
         supabase
           .from("menu_items")
-          .select("id, restaurant_id, category_id, name, name_az, name_ru, description, desc_az, desc_ru, price, image_url, available, badge, addons")
+          .select("id, restaurant_id, category_id, name, name_az, name_ru, description, desc_az, desc_ru, price, image_url, available, badge, addons, no_image")
           .eq("restaurant_id", restaurantId)
           .eq("available", true),
       ]);
