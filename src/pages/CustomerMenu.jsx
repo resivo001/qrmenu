@@ -670,19 +670,19 @@ function ItemRow({ item, orderingOn, addedId, onAdd, onOpen, lang }) {
           </div>
         )}
         {item.addons?.length > 0 && (
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
             {item.addons.map((addon, i) => (
               <span key={i} style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 4,
-                padding: '4px 10px',
+                gap: 3,
+                padding: '3px 8px',
                 borderRadius: 20,
                 background: '#f0ebe0',
                 fontFamily: 'DM Mono',
-                fontSize: 11,
+                fontSize: 10,
                 color: '#1a1714',
-                letterSpacing: '0.03em',
+                letterSpacing: '0.02em',
                 whiteSpace: 'nowrap'
               }}>
                 {getAddonName(addon, lang)}
